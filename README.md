@@ -62,7 +62,7 @@ This project was created to solve a common problem for new parents:
    ```yaml
    services:
      openbabywisher:
-       image: your-dockerhub-username/openbabywisher:latest
+       image: ntwritecode/openbabywisher:latest
        container_name: openbabywisher
        ports:
          - "5000:5000"
@@ -102,7 +102,7 @@ docker run -d \
   -e SECRET_KEY="your-very-secret-key-change-this" \
   -e API_TOKEN="your-admin-token-change-this" \
   -e BABY_NAME="Emma" \
-  your-dockerhub-username/openbabywisher:latest
+  ntwritecode/openbabywisher:latest
 ```
 
 ## Configuration
@@ -178,8 +178,8 @@ To run locally for development:
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
-cd baby-wishlist
+git clone https://github.com/NtWriteCode/OpenBabyWisher.git
+cd OpenBabyWisher
 
 # Create virtual environment
 python -m venv venv
