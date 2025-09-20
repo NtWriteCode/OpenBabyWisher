@@ -151,19 +151,20 @@
         .tag-item {
             display: inline-flex;
             align-items: center;
-            padding: 0.25rem 0.75rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 0.2rem 0.6rem;
             color: white;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 500;
-            border-radius: 9999px;
+            border-radius: 12px;
             transition: all 0.2s ease;
-            box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            /* Color will be set dynamically via JavaScript */
         }
         
         .tag-item:hover {
             transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+            filter: brightness(1.1);
         }
         
         /* Tag suggestions */
@@ -171,20 +172,95 @@
             display: inline-flex;
             align-items: center;
             padding: 0.25rem 0.75rem;
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
+            background: rgba(245, 158, 11, 0.1);
+            color: #d97706;
             font-size: 0.75rem;
             font-weight: 500;
             border-radius: 9999px;
-            border: 1px solid rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(245, 158, 11, 0.2);
             transition: all 0.2s ease;
             cursor: pointer;
         }
         
         .tag-suggestion:hover {
-            background: rgba(102, 126, 234, 0.2);
-            border-color: #667eea;
+            background: rgba(245, 158, 11, 0.2);
+            border-color: #d97706;
             transform: translateY(-1px);
+        }
+
+        /* Modern Tag Input */
+        .tag-input-container {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 8px;
+            background: white;
+            transition: all 0.2s ease;
+            min-height: 50px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tag-input-container:focus-within {
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+        }
+
+        .tag-input-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 6px;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 500;
+            border-radius: 12px;
+            gap: 4px;
+            animation: slideIn 0.2s ease-out;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            /* Color will be set dynamically via JavaScript */
+        }
+
+        .tag-input-pill .remove-tag {
+            cursor: pointer;
+            padding: 2px;
+            border-radius: 50%;
+            transition: background-color 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            font-size: 10px;
+        }
+
+        .tag-input-pill .remove-tag:hover {
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+
+        .tag-input-field {
+            border: none;
+            outline: none;
+            background: transparent;
+            flex: 1;
+            min-width: 120px;
+            padding: 4px 8px;
+            font-size: 0.875rem;
+        }
+
+        .tag-input-field::placeholder {
+            color: #9ca3af;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
         
         /* Better Button Styles */
@@ -243,19 +319,21 @@
         }
         
         .tag-item {
-            background: linear-gradient(45deg, #667eea, #764ba2);
             color: white;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 0.875rem;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.7rem;
             font-weight: 500;
             transition: all 0.2s ease;
             border: none;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            /* Color will be set dynamically via JavaScript */
         }
         
         .tag-item:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+            filter: brightness(1.1);
         }
         
         .floating-action {
@@ -508,6 +586,7 @@
             font-size: 0.875rem;
             cursor: pointer;
             margin-top: 8px;
+            margin-bottom: 20px; /* Add more space before tags */
             display: inline-flex;
             align-items: center;
             gap: 4px;
@@ -1000,6 +1079,78 @@
             });
         }
         
+        // Tag color generation based on hash
+        function hashTagName(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // Convert to 32bit integer
+            }
+            return Math.abs(hash);
+        }
+
+        function getTagColor(tagName) {
+            const hash = hashTagName(tagName.toLowerCase());
+            
+            // Define a palette of muted, subtle colors - much less vivid
+            const mutedColors = [
+                '#6b7280', // Cool Gray
+                '#78716c', // Warm Gray
+                '#71717a', // Zinc
+                '#737373', // Neutral
+                '#6b7280', // Slate
+                '#9ca3af', // Gray-400
+                '#a1a1aa', // Zinc-400
+                '#a3a3a3', // Neutral-400
+                '#94a3b8', // Slate-400
+                '#9f9f9f', // Stone-400
+                '#8b8b8b', // Gray-500 muted
+                '#87878d', // Zinc-500 muted
+                '#8a8a8a', // Neutral-500 muted
+                '#7c7c7c', // Stone-500 muted
+                '#898989', // Warm Gray muted
+                '#7a7a7a', // Cool Gray muted
+                '#8e8e93', // System Gray
+                '#8d8d93', // System Gray 2
+                '#636366', // System Gray 3
+                '#48484a', // System Gray 4
+                '#6d6d70', // System Gray 5
+                '#8e8e93', // System Gray 6
+                '#72727a', // Muted Blue Gray
+                '#6f7782', // Muted Slate
+                '#7a7f85', // Muted Steel
+                '#6e7378', // Muted Charcoal
+                '#7b7d82', // Muted Silver
+                '#6a6d72', // Muted Pewter
+                '#757882', // Muted Graphite
+                '#6c7075', // Muted Ash
+            ];
+            
+            const colorIndex = hash % mutedColors.length;
+            return mutedColors[colorIndex];
+        }
+
+        function applyTagColors() {
+            // Apply colors to all tag items
+            document.querySelectorAll('.tag-item').forEach(tagElement => {
+                const tagText = tagElement.textContent.trim();
+                if (tagText) {
+                    const color = getTagColor(tagText);
+                    tagElement.style.backgroundColor = color;
+                }
+            });
+            
+            // Apply colors to tag input pills
+            document.querySelectorAll('.tag-input-pill').forEach(pillElement => {
+                const tagText = pillElement.querySelector('span:first-child')?.textContent.trim();
+                if (tagText) {
+                    const color = getTagColor(tagText);
+                    pillElement.style.backgroundColor = color;
+                }
+            });
+        }
+
         // Utility functions
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');

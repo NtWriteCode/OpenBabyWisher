@@ -305,6 +305,11 @@ function renderWishlist() {
             </div>
         `;
     }).join('');
+    
+    // Apply tag colors after rendering
+    setTimeout(() => {
+        applyTagColors();
+    }, 10);
 }
 
 function openItemModal(itemId) {

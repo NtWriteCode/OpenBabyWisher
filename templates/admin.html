@@ -165,8 +165,13 @@
             <!-- Tags -->
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2" data-i18n="tags">Tags</label>
-                <input type="text" id="item-tags" class="input-modern w-full" 
-                       data-i18n="tagsPlaceholder" placeholder="Enter tags separated by commas...">
+                <div class="tag-input-container" id="tag-input-container">
+                    <!-- Tag pills will appear here -->
+                    <input type="text" id="tag-input-field" class="tag-input-field" 
+                           data-i18n="tagsPlaceholder" placeholder="Type a tag and press Enter...">
+                </div>
+                <!-- Hidden input for form submission -->
+                <input type="hidden" id="item-tags" name="tags">
                 <div id="tag-suggestions" class="flex flex-wrap gap-2 mt-3">
                     <!-- Tag suggestions will appear here -->
                 </div>
@@ -609,6 +614,11 @@ function renderItems() {
             </div>
         `;
     }).join('');
+    
+    // Apply tag colors after rendering
+    setTimeout(() => {
+        applyTagColors();
+    }, 10);
 }
 
 function openAdminItemModal(itemId) {
@@ -784,6 +794,9 @@ function showAddItemModal() {
         document.getElementById('item-description').value = '';
     }
     
+    // Clear tag input
+    clearTagInput();
+    
     document.getElementById('image-preview').innerHTML = '';
     updateTagSuggestions();
     
@@ -817,7 +830,8 @@ function editItem(itemId) {
         document.getElementById('item-description').value = currentEditingItem.description || '';
     }
     
-    document.getElementById('item-tags').value = currentEditingItem.tags.join(', ');
+    // Set tags in the modern tag input
+    setTagsFromString(currentEditingItem.tags.join(', '));
     
     // Show current images
     const previewContainer = document.getElementById('image-preview');
@@ -1129,10 +1143,94 @@ async function toggleItemStatus(itemId) {
     }
 }
 
+// Modern Tag Input System
+let currentTags = [];
+
+function initializeTagInput() {
+    const tagInputField = document.getElementById('tag-input-field');
+    const tagContainer = document.getElementById('tag-input-container');
+    
+    tagInputField.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            const tagText = this.value.trim();
+            if (tagText && !currentTags.includes(tagText)) {
+                addTagPill(tagText);
+                this.value = '';
+            }
+        } else if (e.key === 'Backspace' && this.value === '' && currentTags.length > 0) {
+            // Remove last tag when backspace is pressed on empty input
+            removeTagPill(currentTags[currentTags.length - 1]);
+        }
+    });
+    
+    tagInputField.addEventListener('blur', function() {
+        const tagText = this.value.trim();
+        if (tagText && !currentTags.includes(tagText)) {
+            addTagPill(tagText);
+            this.value = '';
+        }
+    });
+}
+
+function addTagPill(tagText) {
+    if (currentTags.includes(tagText)) return;
+    
+    currentTags.push(tagText);
+    renderTagPills();
+    updateHiddenTagInput();
+}
+
+function removeTagPill(tagText) {
+    currentTags = currentTags.filter(tag => tag !== tagText);
+    renderTagPills();
+    updateHiddenTagInput();
+}
+
+function renderTagPills() {
+    const container = document.getElementById('tag-input-container');
+    const inputField = document.getElementById('tag-input-field');
+    
+    // Clear existing pills (but keep the input field)
+    const existingPills = container.querySelectorAll('.tag-input-pill');
+    existingPills.forEach(pill => pill.remove());
+    
+    // Add pills before the input field
+    currentTags.forEach(tag => {
+        const pill = document.createElement('div');
+        pill.className = 'tag-input-pill';
+        pill.style.backgroundColor = getTagColor(tag); // Apply color based on hash
+        pill.innerHTML = `
+            <span>${escapeHtml(tag)}</span>
+            <span class="remove-tag" onclick="removeTagPill('${escapeHtml(tag)}')">
+                <i class="fas fa-times"></i>
+            </span>
+        `;
+        container.insertBefore(pill, inputField);
+    });
+}
+
+function updateHiddenTagInput() {
+    document.getElementById('item-tags').value = currentTags.join(', ');
+}
+
+function clearTagInput() {
+    currentTags = [];
+    renderTagPills();
+    updateHiddenTagInput();
+    document.getElementById('tag-input-field').value = '';
+}
+
+function setTagsFromString(tagsString) {
+    currentTags = tagsString.split(',').map(t => t.trim()).filter(t => t);
+    renderTagPills();
+    updateHiddenTagInput();
+}
+
 function updateTagSuggestions() {
     const container = document.getElementById('tag-suggestions');
     container.innerHTML = existingTags.map(tag => `
-        <button type="button" onclick="addTagToInput('${escapeHtml(tag)}')" 
+        <button type="button" onclick="addTagPill('${escapeHtml(tag)}')" 
                 class="tag-suggestion">
             ${escapeHtml(tag)}
         </button>
@@ -1140,13 +1238,7 @@ function updateTagSuggestions() {
 }
 
 function addTagToInput(tag) {
-    const input = document.getElementById('item-tags');
-    const currentTags = input.value.split(',').map(t => t.trim()).filter(t => t);
-    
-    if (!currentTags.includes(tag)) {
-        currentTags.push(tag);
-        input.value = currentTags.join(', ');
-    }
+    addTagPill(tag);
 }
 
 function escapeHtml(unsafe) {
@@ -1226,6 +1318,7 @@ function initializeEditor() {
 document.addEventListener('DOMContentLoaded', function() {
     updateUI();
     initializeEditor();
+    initializeTagInput();
 });
 </script>
 {% endblock %}
