@@ -127,79 +127,135 @@ def get_existing_tags():
     tags = db.session.query(ItemTag.name).distinct().all()
     return [tag[0] for tag in tags]
 
-def get_baby_title_variations():
-    """Get all possible title variations for the baby"""
+def get_hero_messages():
+    """Get practical and fun hero messages for the wishlist"""
+    return {
+        'en': [
+            # Practical messages
+            "Help friends and family choose the perfect gifts",
+            "Curated essentials for your growing family", 
+            "Everything we actually need (and want!)",
+            "Practical gifts that make parenting easier",
+            "From must-haves to nice-to-haves",
+            "The things that actually matter",
+            "Gifts that grow with your little one",
+            "Thoughtfully chosen for new parents",
+            "Making gift-giving stress-free for everyone",
+            "Real needs, real wants, real help",
+            
+            # Funny/Cool tips and messages
+            "Pro tip: Babies don't actually need 47 stuffed animals",
+            "Spoiler alert: Sleep is the best gift (but we'll take diapers too)",
+            "Fun fact: Babies grow faster than your ability to buy clothes",
+            "Reality check: We need more burp cloths than we think",
+            "Insider knowledge: Practical gifts are the real MVPs",
+            "Plot twist: The baby will prefer the box over the toy",
+            "Life hack: Everything will be covered in mysterious stains",
+            "Breaking news: Coffee becomes a food group for parents",
+            "Secret: Baby-proofing starts before the baby arrives",
+            "Truth bomb: You can never have too many wipes",
+            "Wisdom: The simplest toys are often the best",
+            "Reality: Babies have zero respect for your sleep schedule"
+        ],
+        'hu': [
+            # Practical messages
+            "Segíts a barátoknak és családnak a tökéletes ajándék kiválasztásában",
+            "Válogatott alapvető dolgok a növekvő családnak",
+            "Minden, amire tényleg szükségünk van (és amit szeretnénk!)",
+            "Praktikus ajándékok, amelyek megkönnyítik a szülői létet",
+            "A nélkülözhetetlenektől a jó-lenne-ha dolgokig",
+            "A dolgok, amelyek tényleg számítanak",
+            "Ajándékok, amelyek együtt nőnek a kicsivel",
+            "Gondosan kiválasztva új szülőknek",
+            "Az ajándékozást stresszmentessé tesszük mindenkinek",
+            "Valódi szükségletek, valódi vágyak, valódi segítség",
+            
+            # Funny/Cool tips and messages
+            "Profi tipp: A babáknak tényleg nincs szükségük 47 plüssállatra",
+            "Spoiler: Az álom a legjobb ajándék (de a pelenkát is elfogadjuk)",
+            "Tény: A babák gyorsabban nőnek, mint ahogy ruhát tudunk venni",
+            "Valóság: Több köpőkendőre van szükség, mint gondolnánk",
+            "Bennfentes tudás: A praktikus ajándékok a valódi hősök",
+            "Plot twist: A baba a dobozt fogja jobban szeretni, mint a játékot",
+            "Élethack: Minden rejtélyes foltokkal lesz borítva",
+            "Friss hír: A kávé táplálékcsoport lesz a szülőknek",
+            "Titok: A bababiztonság a baba érkezése előtt kezdődik",
+            "Igazság bomba: Soha nincs elég törlőkendő",
+            "Bölcsesség: A legegyszerűbb játékok gyakran a legjobbak",
+            "Valóság: A babák nem tisztelik az alvási időbeosztást"
+        ]
+    }
+
+def get_random_hero_message(language='en'):
+    """Get a random hero message for the current language"""
+    messages = get_hero_messages()
+    return random.choice(messages.get(language, messages['en']))
+
+def get_personalized_texts(language='en'):
+    """Get personalized texts using baby name with proper grammar"""
     baby_name = app.config['BABY_NAME']
     
-    # If baby name is the default, use generic variations
-    if baby_name.lower() == 'our little one':
-        return {
-            'en': [
-                "our little one",
-                "our precious bundle of joy",
-                "our sweet baby",
-                "our little miracle",
-                "our tiny treasure",
-                "our little angel",
-                "our baby love",
-                "our little sunshine",
-                "our sweet pea",
-                "our little star",
-                "our bundle of happiness",
-                "our little blessing"
-            ],
-            'hu': [
-                "a kicsinknek",
-                "az édes kisbabánknak",
-                "a kis csodánknak",
-                "a drága kincsünknek",
-                "a kis angyalunknak",
-                "a napsugarunknak",
-                "az édes babánknak",
-                "a kis csillagunknak",
-                "a boldogságunk forrásának",
-                "a kis áldásunknak",
-                "az édes kis csemetének",
-                "a szívünk örömének"
-            ]
+    # Use default if baby name is generic
+    if baby_name.lower() in ['our little one', 'a kicsi']:
+        texts = {
+            'page_title': {
+                'en': 'Baby Wishlist | Gift Ideas',
+                'hu': 'Baba Kívánságlista | Ajándékötletek'
+            },
+            'welcome_message': {
+                'en': 'Welcome to Our Baby Wishlist!',
+                'hu': 'Üdvözlünk a Baba Kívánságlistánkon!'
+            },
+            'admin_title': {
+                'en': 'Managing Baby Wishlist',
+                'hu': 'Baba Kívánságlista Kezelése'
+            },
+            'hint_message': {
+                'en': "Someone's got a gift for the baby! 🎁",
+                'hu': "Valaki ajándékot vesz a babának! 🎁"
+            },
+            'stats_title': {
+                'en': 'Baby Wishlist Stats',
+                'hu': 'Baba Kívánságlista Statisztikák'
+            }
         }
+        
+        # Return the texts for the requested language
+        return {key: value[language] for key, value in texts.items()}
     else:
-        # Use the custom baby name with variations
-        return {
-            'en': [
-                baby_name,
-                f"little {baby_name}",
-                f"sweet {baby_name}",
-                f"precious {baby_name}",
-                f"baby {baby_name}",
-                f"our little {baby_name}",
-                f"our sweet {baby_name}",
-                f"our precious {baby_name}",
-                f"little angel {baby_name}",
-                f"sunshine {baby_name}",
-                f"our miracle {baby_name}",
-                f"sweet baby {baby_name}"
-            ],
-            'hu': [
-                baby_name,
-                f"kis {baby_name}",
-                f"édes {baby_name}",
-                f"drága {baby_name}",
-                f"{baby_name} baba",
-                f"a kis {baby_name}",
-                f"az édes {baby_name}",
-                f"a drága {baby_name}",
-                f"kis angyal {baby_name}",
-                f"napsugár {baby_name}",
-                f"a mi csodánk {baby_name}",
-                f"édes baba {baby_name}"
-            ]
+        # Use baby name with proper Hungarian grammar structure
+        texts = {
+            'page_title': {
+                'en': f"{baby_name}'s Baby Wishlist | Gift Ideas",
+                'hu': f"{baby_name} baba kívánságlistája | Ajándékötletek"
+            },
+            'welcome_message': {
+                'en': f"Welcome to {baby_name}'s Wishlist!",
+                'hu': f"Üdvözlünk {baby_name} kívánságlistáján!"
+            },
+            'admin_title': {
+                'en': f"Managing {baby_name}'s Wishlist",
+                'hu': f"{baby_name} kívánságlistájának kezelése"
+            },
+            'hint_message': {
+                'en': f"Someone's got a gift for {baby_name}! 🎁",
+                'hu': f"Valaki ajándékot vesz {baby_name} babának! 🎁"
+            },
+            'stats_title': {
+                'en': f"{baby_name}'s Wishlist Stats",
+                'hu': f"{baby_name} kívánságlistájának statisztikái"
+            }
         }
+        
+        # Return the texts for the requested language
+        return {key: value[language] for key, value in texts.items()}
 
-def get_random_baby_title(language='en'):
-    """Get a random title variation for the baby"""
-    variations = get_baby_title_variations()
-    return random.choice(variations.get(language, variations['en']))
+def get_baby_initial():
+    """Get the first letter of baby name for favicon"""
+    baby_name = app.config['BABY_NAME']
+    if baby_name.lower() in ['our little one', 'a kicsi']:
+        return 'B'  # B for Baby
+    return baby_name[0].upper()
 
 # Routes
 @app.route('/')
@@ -446,17 +502,28 @@ def get_predefined_messages():
     }
     return jsonify(messages)
 
-@app.route('/api/baby-title', methods=['GET'])
-def get_baby_title():
-    """Get a random baby title for the current language"""
+@app.route('/api/hero-message', methods=['GET'])
+def get_hero_message():
+    """Get a random hero message for the current language"""
     language = request.args.get('lang', 'en')
-    title = get_random_baby_title(language)
-    return jsonify({'title': title})
+    message = get_random_hero_message(language)
+    return jsonify({'message': message})
 
-@app.route('/api/baby-title-variations', methods=['GET'])
-def get_baby_title_variations_api():
-    """Get all baby title variations for both languages"""
-    return jsonify(get_baby_title_variations())
+@app.route('/api/hero-messages', methods=['GET'])
+def get_hero_messages_api():
+    """Get all hero messages for both languages"""
+    return jsonify(get_hero_messages())
+
+@app.route('/api/personalized-texts', methods=['GET'])
+def get_personalized_texts_api():
+    """Get personalized texts for the current language"""
+    language = request.args.get('lang', 'en')
+    return jsonify(get_personalized_texts(language))
+
+@app.route('/api/baby-initial', methods=['GET'])
+def get_baby_initial_api():
+    """Get baby's initial for favicon"""
+    return jsonify({'initial': get_baby_initial()})
 
 if __name__ == '__main__':
     print("🎯 Baby Wishlist - Starting up...", flush=True)

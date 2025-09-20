@@ -6,8 +6,9 @@
 <!-- Hero Section -->
 <div class="text-center mb-12 animate-fade-in">
     <div class="glass-effect p-8 mb-8 max-w-4xl mx-auto">
+        <h2 id="welcome-message" class="text-2xl font-semibold text-white/90 mb-2 animate-slide-up">Welcome to Our Baby Wishlist!</h2>
         <h1 class="text-5xl font-bold text-white mb-4 animate-slide-up" data-i18n="title">Baby Wishlist</h1>
-        <p class="text-xl text-white/80 mb-6 animate-slide-up" style="animation-delay: 0.1s" data-i18n="subtitle">Thoughtful gift ideas for {baby_title}</p>
+        <p class="text-xl text-white/80 mb-6 animate-slide-up" style="animation-delay: 0.1s" data-i18n="subtitle">{hero_message}</p>
         
         <!-- Quick Stats -->
         <div class="flex justify-center items-center gap-8 text-white/70 text-sm">
@@ -287,7 +288,7 @@ function renderWishlist() {
                     <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">
                         <div class="flex items-center gap-2 text-amber-700">
                             <i class="fas fa-gift"></i>
-                            <span class="font-medium text-sm">${t('someoneGotThis')}</span>
+                            <span class="font-medium text-sm">${personalizedTexts.hint_message || t('someoneGotThis')}</span>
                             <span class="text-xs bg-amber-200 px-2 py-1 rounded-full">${item.hints.length}</span>
                         </div>
                     </div>
@@ -564,6 +565,11 @@ document.addEventListener('keydown', function(e) {
 });
 
 // Load wishlist on page load
-document.addEventListener('DOMContentLoaded', loadWishlist);
+document.addEventListener('DOMContentLoaded', function() {
+    loadWishlist();
+    loadHeroMessage(); // Load hero message on page load
+    loadPersonalizedTexts(); // Load personalized texts on page load
+    loadDynamicFavicon(); // Load dynamic favicon on page load
+});
 </script>
 {% endblock %}

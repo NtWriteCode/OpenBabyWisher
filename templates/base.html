@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Baby Wishlist{% endblock %}</title>
+    <title id="page-title">{% block title %}Baby Wishlist{% endblock %}</title>
+    <meta name="description" id="page-description" content="A beautiful wishlist for baby gifts and essentials">
+    
+    <!-- Dynamic Favicon -->
+    <link rel="icon" id="dynamic-favicon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' fill='%23667eea'>B</text></svg>">
     
     <!-- Modern CSS Framework -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -152,13 +156,13 @@
             display: inline-flex;
             align-items: center;
             padding: 0.2rem 0.6rem;
-            color: white;
             font-size: 0.7rem;
-            font-weight: 500;
+            font-weight: 600;
             border-radius: 12px;
             transition: all 0.2s ease;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-            /* Color will be set dynamically via JavaScript */
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            /* Color and text-shadow will be set dynamically via JavaScript */
         }
         
         .tag-item:hover {
@@ -211,14 +215,14 @@
             display: inline-flex;
             align-items: center;
             padding: 3px 6px;
-            color: white;
             font-size: 0.7rem;
-            font-weight: 500;
+            font-weight: 600;
             border-radius: 12px;
             gap: 4px;
             animation: slideIn 0.2s ease-out;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-            /* Color will be set dynamically via JavaScript */
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            /* Color and text-shadow will be set dynamically via JavaScript */
         }
 
         .tag-input-pill .remove-tag {
@@ -847,7 +851,7 @@
         const translations = {
             en: {
                 title: "Baby Wishlist",
-                subtitle: "Thoughtful gift ideas for {baby_title}",
+                subtitle: "{hero_message}",
                 addHint: "I've got this!",
                 hintPlaceholder: "Optional: Add a note...",
                 sendHint: "Send Hint",
@@ -937,7 +941,7 @@
             },
             hu: {
                 title: "Baba Kívánságlista",
-                subtitle: "Átgondolt ajándékötletek {baby_title}",
+                subtitle: "{hero_message}",
                 addHint: "Ezt megveszem!",
                 hintPlaceholder: "Opcionális: Adj hozzá egy megjegyzést...",
                 sendHint: "Jelzés Küldése",
@@ -1028,31 +1032,77 @@
         };
         
         let currentLang = localStorage.getItem('language') || 'en';
-        let currentBabyTitle = 'our little one'; // Default fallback
+        let currentHeroMessage = 'Help friends and family choose the perfect gifts'; // Default fallback
+        let personalizedTexts = {}; // Store personalized texts
         
         function t(key) {
             const translation = translations[currentLang][key] || key;
-            // Replace {baby_title} placeholder with current baby title
-            return translation.replace('{baby_title}', currentBabyTitle);
+            // Replace {hero_message} placeholder with current hero message
+            return translation.replace('{hero_message}', currentHeroMessage);
         }
         
-        // Load a random baby title
-        async function loadBabyTitle() {
+        // Load a random hero message
+        async function loadHeroMessage() {
             try {
-                const response = await fetch(`/api/baby-title?lang=${currentLang}`);
+                const response = await fetch(`/api/hero-message?lang=${currentLang}`);
                 const data = await response.json();
-                currentBabyTitle = data.title;
-                updateUI(); // Refresh UI with new title
+                currentHeroMessage = data.message;
+                updateUI(); // Refresh UI with new message
             } catch (error) {
-                console.error('Error loading baby title:', error);
-                // Keep the default title if loading fails
+                console.error('Error loading hero message:', error);
+                // Keep the default message if loading fails
+            }
+        }
+        
+        // Load personalized texts
+        async function loadPersonalizedTexts() {
+            try {
+                const response = await fetch(`/api/personalized-texts?lang=${currentLang}`);
+                personalizedTexts = await response.json();
+                updatePersonalizedUI();
+            } catch (error) {
+                console.error('Error loading personalized texts:', error);
+            }
+        }
+        
+        // Load and set dynamic favicon
+        async function loadDynamicFavicon() {
+            try {
+                const response = await fetch('/api/baby-initial');
+                const data = await response.json();
+                const initial = data.initial;
+                
+                const faviconUrl = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' fill='%23667eea'>${initial}</text></svg>`;
+                document.getElementById('dynamic-favicon').href = faviconUrl;
+            } catch (error) {
+                console.error('Error loading favicon:', error);
+            }
+        }
+        
+        // Update personalized UI elements
+        function updatePersonalizedUI() {
+            if (personalizedTexts.page_title) {
+                document.getElementById('page-title').textContent = personalizedTexts.page_title;
+            }
+            if (personalizedTexts.welcome_message) {
+                const welcomeEl = document.getElementById('welcome-message');
+                if (welcomeEl) {
+                    welcomeEl.textContent = personalizedTexts.welcome_message;
+                }
+            }
+            if (personalizedTexts.admin_title) {
+                const adminTitleEl = document.getElementById('admin-title');
+                if (adminTitleEl) {
+                    adminTitleEl.textContent = personalizedTexts.admin_title;
+                }
             }
         }
         
         function setLanguage(lang) {
             currentLang = lang;
             localStorage.setItem('language', lang);
-            loadBabyTitle(); // Load new title for the new language
+            loadHeroMessage(); // Load new message for the new language
+            loadPersonalizedTexts(); // Load new personalized texts for the new language
             updateLanguageToggle();
         }
         
@@ -1070,7 +1120,8 @@
         // Initialize language on page load
         document.addEventListener('DOMContentLoaded', function() {
             updateLanguageToggle();
-            loadBabyTitle(); // Load baby title first, which will call updateUI()
+            loadHeroMessage(); // Load hero message first, which will call updateUI()
+            loadPersonalizedTexts(); // Load personalized texts
         });
         
         function updateLanguageToggle() {
@@ -1090,45 +1141,110 @@
             return Math.abs(hash);
         }
 
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function getLuminance(r, g, b) {
+            // Convert RGB to relative luminance using WCAG formula
+            const [rs, gs, bs] = [r, g, b].map(c => {
+                c = c / 255;
+                return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+            });
+            return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+        }
+
+        function getContrastColor(backgroundColor) {
+            const rgb = hexToRgb(backgroundColor);
+            if (!rgb) return '#ffffff'; // fallback to white
+            
+            const luminance = getLuminance(rgb.r, rgb.g, rgb.b);
+            // Use dark text for light backgrounds (luminance > 0.5)
+            return luminance > 0.5 ? '#2d3748' : '#ffffff';
+        }
+
         function getTagColor(tagName) {
             const hash = hashTagName(tagName.toLowerCase());
             
-            // Define a palette of muted, subtle colors - much less vivid
-            const mutedColors = [
-                '#6b7280', // Cool Gray
-                '#78716c', // Warm Gray
-                '#71717a', // Zinc
-                '#737373', // Neutral
-                '#6b7280', // Slate
-                '#9ca3af', // Gray-400
-                '#a1a1aa', // Zinc-400
-                '#a3a3a3', // Neutral-400
-                '#94a3b8', // Slate-400
-                '#9f9f9f', // Stone-400
-                '#8b8b8b', // Gray-500 muted
-                '#87878d', // Zinc-500 muted
-                '#8a8a8a', // Neutral-500 muted
-                '#7c7c7c', // Stone-500 muted
-                '#898989', // Warm Gray muted
-                '#7a7a7a', // Cool Gray muted
-                '#8e8e93', // System Gray
-                '#8d8d93', // System Gray 2
-                '#636366', // System Gray 3
-                '#48484a', // System Gray 4
-                '#6d6d70', // System Gray 5
-                '#8e8e93', // System Gray 6
-                '#72727a', // Muted Blue Gray
-                '#6f7782', // Muted Slate
-                '#7a7f85', // Muted Steel
-                '#6e7378', // Muted Charcoal
-                '#7b7d82', // Muted Silver
-                '#6a6d72', // Muted Pewter
-                '#757882', // Muted Graphite
-                '#6c7075', // Muted Ash
+            // Define a vibrant, colorful palette with reduced saturation for readability
+            const colorfulPalette = [
+                // Reds & Pinks
+                '#e57373', // Soft Red
+                '#f06292', // Soft Pink
+                '#ad7a99', // Dusty Rose
+                '#c48b9f', // Mauve
+                
+                // Oranges & Corals
+                '#ffb74d', // Soft Orange
+                '#ff8a65', // Soft Coral
+                '#d4a574', // Peach
+                '#e6a85c', // Apricot
+                
+                // Yellows & Golds
+                '#fff176', // Soft Yellow
+                '#dcc866', // Gold
+                '#d4c441', // Mustard
+                '#c9b037', // Brass
+                
+                // Greens
+                '#81c784', // Soft Green
+                '#a5d6a7', // Light Green
+                '#66bb6a', // Forest Green
+                '#7cb342', // Lime Green
+                '#689f38', // Olive Green
+                '#558b2f', // Dark Green
+                
+                // Teals & Cyans
+                '#4db6ac', // Teal
+                '#26a69a', // Dark Teal
+                '#00acc1', // Cyan
+                '#0097a7', // Dark Cyan
+                
+                // Blues
+                '#64b5f6', // Soft Blue
+                '#42a5f5', // Sky Blue
+                '#2196f3', // Blue
+                '#1976d2', // Dark Blue
+                '#1565c0', // Navy Blue
+                '#0d47a1', // Deep Blue
+                
+                // Purples & Violets
+                '#ba68c8', // Soft Purple
+                '#ab47bc', // Medium Purple
+                '#9c27b0', // Purple
+                '#7b1fa2', // Dark Purple
+                '#673ab7', // Deep Purple
+                '#5e35b1', // Indigo
+                
+                // Browns & Earth Tones
+                '#a1887f', // Soft Brown
+                '#8d6e63', // Medium Brown
+                '#795548', // Brown
+                '#6d4c41', // Dark Brown
+                '#5d4037', // Deep Brown
+                
+                // Additional Unique Colors
+                '#f8bbd9', // Light Pink
+                '#e1bee7', // Light Purple
+                '#c5cae9', // Light Indigo
+                '#bbdefb', // Light Blue
+                '#b2dfdb', // Light Teal
+                '#c8e6c9', // Light Green
+                '#dcedc8', // Pale Green
+                '#f0f4c3', // Pale Lime
+                '#fff9c4', // Pale Yellow
+                '#ffecb3', // Pale Orange
+                '#ffccbc', // Pale Peach
+                '#d7ccc8', // Pale Brown
             ];
             
-            const colorIndex = hash % mutedColors.length;
-            return mutedColors[colorIndex];
+            const colorIndex = hash % colorfulPalette.length;
+            return colorfulPalette[colorIndex];
         }
 
         function applyTagColors() {
@@ -1136,8 +1252,20 @@
             document.querySelectorAll('.tag-item').forEach(tagElement => {
                 const tagText = tagElement.textContent.trim();
                 if (tagText) {
-                    const color = getTagColor(tagText);
-                    tagElement.style.backgroundColor = color;
+                    const backgroundColor = getTagColor(tagText);
+                    const textColor = getContrastColor(backgroundColor);
+                    
+                    tagElement.style.backgroundColor = backgroundColor;
+                    tagElement.style.color = textColor;
+                    
+                    // Adjust text shadow based on text color
+                    if (textColor === '#2d3748') {
+                        // Dark text on light background - use light shadow
+                        tagElement.style.textShadow = '0 1px 2px rgba(255, 255, 255, 0.8)';
+                    } else {
+                        // White text on dark background - use dark shadow
+                        tagElement.style.textShadow = '0 1px 2px rgba(0, 0, 0, 0.4)';
+                    }
                 }
             });
             
@@ -1145,8 +1273,20 @@
             document.querySelectorAll('.tag-input-pill').forEach(pillElement => {
                 const tagText = pillElement.querySelector('span:first-child')?.textContent.trim();
                 if (tagText) {
-                    const color = getTagColor(tagText);
-                    pillElement.style.backgroundColor = color;
+                    const backgroundColor = getTagColor(tagText);
+                    const textColor = getContrastColor(backgroundColor);
+                    
+                    pillElement.style.backgroundColor = backgroundColor;
+                    pillElement.style.color = textColor;
+                    
+                    // Adjust text shadow based on text color
+                    if (textColor === '#2d3748') {
+                        // Dark text on light background - use light shadow
+                        pillElement.style.textShadow = '0 1px 2px rgba(255, 255, 255, 0.8)';
+                    } else {
+                        // White text on dark background - use dark shadow
+                        pillElement.style.textShadow = '0 1px 2px rgba(0, 0, 0, 0.4)';
+                    }
                 }
             });
         }
