@@ -6,6 +6,10 @@ on:
     tags: [ 'v*' ]
   pull_request:
     branches: [ main, master ]
+  schedule:
+    # Rebuild weekly for security updates (Sundays at 2 AM UTC)
+    - cron: '0 2 * * 0'
+  workflow_dispatch: # Allow manual triggers
 
 env:
   REGISTRY: docker.io
@@ -55,3 +59,12 @@ jobs:
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+        
+    - name: Update Docker Hub description
+      if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+      uses: peter-evans/dockerhub-description@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        repository: ${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+        readme-filepath: ./README.md
