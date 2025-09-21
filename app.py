@@ -46,6 +46,79 @@ CORS(app)
 
 # Database will be initialized in the main block
 
+def auto_migrate_order_field():
+    """Automatically add order field and populate it if missing"""
+    try:
+        # Check if order column exists by querying table info
+        result = db.session.execute(db.text("PRAGMA table_info(wishlist_item)")).fetchall()
+        columns = [row[1] for row in result]  # Column names are in index 1
+        
+        if 'order' in columns:
+            app.logger.info("Order field already exists")
+            return
+            
+        app.logger.info("Order field missing, adding it...")
+        
+        # Add the order column
+        db.session.execute(db.text("ALTER TABLE wishlist_item ADD COLUMN 'order' INTEGER DEFAULT 0"))
+        
+        # Get all items and assign random order
+        items = db.session.execute(db.text("SELECT id FROM wishlist_item ORDER BY created_at")).fetchall()
+        
+        if items:
+            import random
+            # Create a shuffled list of order values
+            order_values = list(range(len(items)))
+            random.shuffle(order_values)
+            
+            # Update each item with a random order
+            for i, (item_id,) in enumerate(items):
+                db.session.execute(
+                    db.text("UPDATE wishlist_item SET 'order' = :order WHERE id = :id"),
+                    {"order": order_values[i], "id": item_id}
+                )
+            
+            app.logger.info(f"Added order field and randomized order for {len(items)} items")
+        else:
+            app.logger.info("Added order field (no existing items to randomize)")
+        
+        db.session.commit()
+        
+    except Exception as e:
+        app.logger.error(f"Failed to auto-migrate order field: {e}")
+        db.session.rollback()
+
+def ensure_order_values():
+    """Ensure all items have proper order values (fix any NULL or duplicate orders)"""
+    try:
+        # Find items with NULL or missing order values
+        items_without_order = db.session.execute(
+            db.text("SELECT id FROM wishlist_item WHERE 'order' IS NULL ORDER BY created_at")
+        ).fetchall()
+        
+        if items_without_order:
+            # Get the highest existing order value
+            max_order_result = db.session.execute(
+                db.text("SELECT MAX('order') FROM wishlist_item WHERE 'order' IS NOT NULL")
+            ).fetchone()
+            
+            max_order = max_order_result[0] if max_order_result[0] is not None else -1
+            
+            # Assign incremental order values to items without order
+            for i, (item_id,) in enumerate(items_without_order):
+                new_order = max_order + 1 + i
+                db.session.execute(
+                    db.text("UPDATE wishlist_item SET 'order' = :order WHERE id = :id"),
+                    {"order": new_order, "id": item_id}
+                )
+            
+            db.session.commit()
+            app.logger.info(f"Fixed order values for {len(items_without_order)} items")
+            
+    except Exception as e:
+        app.logger.error(f"Failed to ensure order values: {e}")
+        db.session.rollback()
+
 # Database Models
 class WishlistItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -53,6 +126,7 @@ class WishlistItem(db.Model):
     description = db.Column(db.Text, nullable=True)
     priority = db.Column(db.Integer, default=0)
     disabled = db.Column(db.Boolean, default=False)
+    order = db.Column(db.Integer, default=0)  # Manual ordering field
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships
@@ -67,6 +141,7 @@ class WishlistItem(db.Model):
             'description': self.description,
             'priority': self.priority,
             'disabled': self.disabled,
+            'order': self.order,
             'created_at': self.created_at.isoformat(),
             'images': [img.to_dict() for img in self.images],
             'tags': [tag.name for tag in self.tags],
@@ -273,7 +348,7 @@ def uploaded_file(filename):
 # API Routes
 @app.route('/api/items', methods=['GET'])
 def get_items():
-    items = WishlistItem.query.order_by(WishlistItem.priority.desc(), WishlistItem.created_at.desc()).all()
+    items = db.session.query(WishlistItem).order_by(WishlistItem.order.asc(), WishlistItem.priority.desc(), WishlistItem.created_at.desc()).all()
     return jsonify([item.to_dict() for item in items])
 
 @app.route('/api/auth/test', methods=['GET'])
@@ -299,10 +374,14 @@ def create_item():
     
     data = request.get_json() if request.is_json else request.form
     
+    # Get the highest current order and add 1 for new items
+    max_order = db.session.query(db.func.max(WishlistItem.order)).scalar() or 0
+    
     item = WishlistItem(
         title=data.get('title', ''),
         description=data.get('description', ''),
-        priority=int(data.get('priority', 0))
+        priority=int(data.get('priority', 0)),
+        order=int(data.get('order', max_order + 1))
     )
     
     db.session.add(item)
@@ -326,18 +405,20 @@ def update_item(item_id):
     if token != app.config['API_TOKEN']:
         return jsonify({'error': 'Unauthorized'}), 401
     
-    item = WishlistItem.query.get_or_404(item_id)
+    item = db.get_or_404(WishlistItem, item_id)
     data = request.get_json() if request.is_json else request.form
     
     item.title = data.get('title', item.title)
     item.description = data.get('description', item.description)
     item.priority = int(data.get('priority', item.priority))
     item.disabled = bool(data.get('disabled', item.disabled))
+    if 'order' in data:
+        item.order = int(data.get('order', item.order))
     
     # Update tags
     if 'tags' in data:
         # Remove existing tags
-        ItemTag.query.filter_by(item_id=item.id).delete()
+        db.session.query(ItemTag).filter_by(item_id=item.id).delete()
         
         # Add new tags
         tags = data.get('tags', [])
@@ -357,7 +438,7 @@ def delete_item(item_id):
     if token != app.config['API_TOKEN']:
         return jsonify({'error': 'Unauthorized'}), 401
     
-    item = WishlistItem.query.get_or_404(item_id)
+    item = db.get_or_404(WishlistItem, item_id)
     
     # Delete associated images from filesystem
     for image in item.images:
@@ -376,7 +457,7 @@ def upload_image(item_id):
     if token != app.config['API_TOKEN']:
         return jsonify({'error': 'Unauthorized'}), 401
     
-    item = WishlistItem.query.get_or_404(item_id)
+    item = db.get_or_404(WishlistItem, item_id)
     
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
@@ -409,7 +490,7 @@ def add_image_from_url(item_id):
     if token != app.config['API_TOKEN']:
         return jsonify({'error': 'Unauthorized'}), 401
     
-    item = WishlistItem.query.get_or_404(item_id)
+    item = db.get_or_404(WishlistItem, item_id)
     data = request.get_json()
     
     if not data or 'url' not in data:
@@ -439,7 +520,7 @@ def delete_image(item_id, image_id):
     if token != app.config['API_TOKEN']:
         return jsonify({'error': 'Unauthorized'}), 401
     
-    image = ItemImage.query.filter_by(id=image_id, item_id=item_id).first_or_404()
+    image = db.session.query(ItemImage).filter_by(id=image_id, item_id=item_id).first_or_404()
     
     # Delete file from filesystem
     try:
@@ -453,7 +534,7 @@ def delete_image(item_id, image_id):
 
 @app.route('/api/items/<int:item_id>/hint', methods=['POST'])
 def add_hint(item_id):
-    item = WishlistItem.query.get_or_404(item_id)
+    item = db.get_or_404(WishlistItem, item_id)
     data = request.get_json()
     
     message = data.get('message', '').strip()
@@ -472,11 +553,42 @@ def dismiss_hint(hint_id):
     if token != app.config['API_TOKEN']:
         return jsonify({'error': 'Unauthorized'}), 401
     
-    hint = PurchaseHint.query.get_or_404(hint_id)
+    hint = db.get_or_404(PurchaseHint, hint_id)
     hint.dismissed = True
     db.session.commit()
     
     return '', 204
+
+@app.route('/api/items/reorder', methods=['POST'])
+def reorder_items():
+    token = request.headers.get('Authorization') or request.form.get('token')
+    if token != app.config['API_TOKEN']:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.get_json()
+    if not data or 'item_orders' not in data:
+        return jsonify({'error': 'item_orders is required'}), 400
+    
+    item_orders = data['item_orders']  # Expected format: [{'id': 1, 'order': 0}, {'id': 2, 'order': 1}, ...]
+    
+    try:
+        for item_order in item_orders:
+            item_id = item_order.get('id')
+            order = item_order.get('order')
+            
+            if item_id is None or order is None:
+                return jsonify({'error': 'Each item must have id and order'}), 400
+            
+            item = db.session.get(WishlistItem, item_id)
+            if item:
+                item.order = order
+        
+        db.session.commit()
+        return jsonify({'success': True}), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/tags', methods=['GET'])
 def get_tags():
@@ -534,6 +646,15 @@ if __name__ == '__main__':
             db.create_all()
             app.logger.info("Database tables created successfully")
             print("✅ Database initialized", flush=True)
+            
+            # Auto-migrate order field if needed
+            auto_migrate_order_field()
+            
+            # Ensure all items have proper order values
+            ensure_order_values()
+            
+            print("✅ Database migrations completed", flush=True)
+            
         except Exception as e:
             app.logger.error(f"Database initialization failed: {e}")
             print(f"❌ Database error: {e}", flush=True)

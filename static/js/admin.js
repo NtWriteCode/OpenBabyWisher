@@ -5,6 +5,8 @@ let apiToken = '';
 let isAuthenticated = false;
 let quillEditor = null;
 let currentAdminView = 'grid'; // 'grid' or 'list'
+let sortModeActive = false;
+let draggedElement = null;
 
 // Enhanced admin translations
 const adminTranslations = {
@@ -62,7 +64,10 @@ const adminTranslations = {
         imageUrlPlaceholder: "Or paste image URL...",
         welcomeTitle: "Welcome to Your Wishlist!",
         welcomeMessage: "Start by adding your first wishlist item. Create something special that your family and friends can help you with!",
-        addFirstItem: "Add Your First Item"
+        addFirstItem: "Add Your First Item",
+        moveUp: "Move Up",
+        moveDown: "Move Down",
+        dragToReorder: "Drag to Reorder"
     },
     hu: {
         ...translations.hu,
@@ -118,7 +123,10 @@ const adminTranslations = {
         imageUrlPlaceholder: "Vagy illesszen be kép URL-t...",
         welcomeTitle: "Üdvözöljük a Kívánságlistájában!",
         welcomeMessage: "Kezdje el az első kívánságlista elem hozzáadásával. Hozzon létre valami különlegeset, amiben a családja és barátai segíthetnek!",
-        addFirstItem: "Első Elem Hozzáadása"
+        addFirstItem: "Első Elem Hozzáadása",
+        moveUp: "Fel",
+        moveDown: "Le",
+        dragToReorder: "Húzd az átrendezéshez"
     }
 };
 
@@ -317,6 +325,10 @@ function renderItems() {
     // Apply tag colors after rendering
     setTimeout(() => {
         applyTagColors();
+        // Re-enable drag and drop if sort mode is active
+        if (sortModeActive) {
+            enableDragAndDrop();
+        }
     }, 10);
 }
 
@@ -393,6 +405,16 @@ function renderAdminGridView() {
                 
                 <!-- Admin Actions - Always visible at bottom -->
                 <div class="flex justify-center gap-2 mt-4 pt-4 border-t border-gray-200">
+                    <button onclick="event.stopPropagation(); moveItemUp(${item.id})" 
+                            class="px-2 py-1 bg-purple-500 hover:bg-purple-600 text-white text-xs rounded-full transition-colors" 
+                            title="${t('moveUp')}">
+                        <i class="fas fa-arrow-up"></i>
+                    </button>
+                    <button onclick="event.stopPropagation(); moveItemDown(${item.id})" 
+                            class="px-2 py-1 bg-purple-500 hover:bg-purple-600 text-white text-xs rounded-full transition-colors" 
+                            title="${t('moveDown')}">
+                        <i class="fas fa-arrow-down"></i>
+                    </button>
                     <button onclick="event.stopPropagation(); editItem(${item.id})" 
                             class="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-full transition-colors">
                         <i class="fas fa-edit mr-1"></i>
@@ -417,6 +439,7 @@ function renderAdminListView() {
         
         return `
             <div class="wishlist-item-list admin-list-item ${item.disabled ? 'disabled' : ''}" 
+                 data-item-id="${item.id}"
                  onclick="openAdminItemModal(${item.id})"
                  style="animation: slide-up 0.3s ease-out ${index * 0.05}s both">
                 
@@ -476,6 +499,14 @@ function renderAdminListView() {
                         
                         <!-- Admin Actions -->
                         <div class="list-item-actions">
+                            <button onclick="event.stopPropagation(); moveItemUp(${item.id})" 
+                                    class="list-item-action-btn secondary" title="${t('moveUp')}">
+                                <i class="fas fa-arrow-up"></i>
+                            </button>
+                            <button onclick="event.stopPropagation(); moveItemDown(${item.id})" 
+                                    class="list-item-action-btn secondary" title="${t('moveDown')}">
+                                <i class="fas fa-arrow-down"></i>
+                            </button>
                             <button onclick="event.stopPropagation(); editItem(${item.id})" class="list-item-action-btn secondary">
                                 <i class="fas fa-edit"></i>
                                 ${t('edit')}
@@ -1218,6 +1249,257 @@ function loadAdminViewPreference() {
             gridBtn.classList.toggle('active', savedView === 'grid');
             listBtn.classList.toggle('active', savedView === 'list');
         }
+    }
+}
+
+// Drag and Drop Functions
+function toggleSortMode() {
+    sortModeActive = !sortModeActive;
+    const container = document.getElementById('admin-items-container');
+    const sortBtn = document.getElementById('sort-mode-btn');
+    
+    if (sortModeActive) {
+        container.classList.add('sort-mode-active');
+        sortBtn.classList.add('active');
+        showSortModeIndicator();
+        enableDragAndDrop();
+    } else {
+        container.classList.remove('sort-mode-active');
+        sortBtn.classList.remove('active');
+        hideSortModeIndicator();
+        disableDragAndDrop();
+    }
+}
+
+function showSortModeIndicator() {
+    const indicator = document.createElement('div');
+    indicator.id = 'sort-mode-indicator';
+    indicator.className = 'sort-mode-indicator';
+    indicator.innerHTML = '<i class="fas fa-arrows-alt mr-2"></i>Drag items to reorder';
+    document.body.appendChild(indicator);
+    
+    setTimeout(() => {
+        if (indicator.parentNode) {
+            indicator.remove();
+        }
+    }, 3000);
+}
+
+function hideSortModeIndicator() {
+    const indicator = document.getElementById('sort-mode-indicator');
+    if (indicator) {
+        indicator.remove();
+    }
+}
+
+function enableDragAndDrop() {
+    const items = document.querySelectorAll('.wishlist-card, .wishlist-item-list');
+    items.forEach((item, index) => {
+        item.draggable = true;
+        item.dataset.originalIndex = index;
+        
+        item.addEventListener('dragstart', handleDragStart);
+        item.addEventListener('dragover', handleDragOver);
+        item.addEventListener('drop', handleDrop);
+        item.addEventListener('dragend', handleDragEnd);
+        item.addEventListener('dragenter', handleDragEnter);
+        item.addEventListener('dragleave', handleDragLeave);
+    });
+}
+
+function disableDragAndDrop() {
+    const items = document.querySelectorAll('.wishlist-card, .wishlist-item-list');
+    items.forEach(item => {
+        item.draggable = false;
+        item.removeEventListener('dragstart', handleDragStart);
+        item.removeEventListener('dragover', handleDragOver);
+        item.removeEventListener('drop', handleDrop);
+        item.removeEventListener('dragend', handleDragEnd);
+        item.removeEventListener('dragenter', handleDragEnter);
+        item.removeEventListener('dragleave', handleDragLeave);
+    });
+}
+
+function handleDragStart(e) {
+    draggedElement = this;
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', this.outerHTML);
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+function handleDragEnter(e) {
+    if (this !== draggedElement) {
+        this.classList.add('drag-over');
+    }
+}
+
+function handleDragLeave(e) {
+    this.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+    if (e.stopPropagation) {
+        e.stopPropagation();
+    }
+    
+    if (draggedElement !== this) {
+        // Get the container
+        const container = this.parentNode;
+        const allItems = Array.from(container.children);
+        
+        // Find positions
+        const draggedIndex = allItems.indexOf(draggedElement);
+        const targetIndex = allItems.indexOf(this);
+        
+        // Move the element
+        if (draggedIndex < targetIndex) {
+            container.insertBefore(draggedElement, this.nextSibling);
+        } else {
+            container.insertBefore(draggedElement, this);
+        }
+        
+        // Update the order in the backend
+        updateItemOrder();
+    }
+    
+    this.classList.remove('drag-over');
+    return false;
+}
+
+function handleDragEnd(e) {
+    this.classList.remove('dragging');
+    
+    // Clean up
+    const items = document.querySelectorAll('.wishlist-card, .wishlist-item-list');
+    items.forEach(item => {
+        item.classList.remove('drag-over');
+    });
+    
+    draggedElement = null;
+}
+
+async function updateItemOrder() {
+    if (!apiToken) {
+        showToast(t('pleaseAuthenticate'), 'error');
+        return;
+    }
+    
+    const container = currentAdminView === 'grid' ? 
+        document.getElementById('admin-items-grid') : 
+        document.getElementById('admin-items-list');
+    
+    const items = Array.from(container.children);
+    const itemOrders = items.map((element, index) => {
+        const itemId = parseInt(element.dataset.itemId);
+        return { id: itemId, order: index };
+    });
+    
+    try {
+        const response = await fetch('/api/items/reorder', {
+            method: 'POST',
+            headers: {
+                'Authorization': apiToken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ item_orders: itemOrders })
+        });
+        
+        if (response.ok) {
+            showToast('Order updated successfully', 'success');
+            // Update local wishlistItems order
+            wishlistItems.forEach(item => {
+                const orderInfo = itemOrders.find(o => o.id === item.id);
+                if (orderInfo) {
+                    item.order = orderInfo.order;
+                }
+            });
+            // Sort local array to match new order
+            wishlistItems.sort((a, b) => a.order - b.order);
+        } else {
+            throw new Error('Failed to update order');
+        }
+    } catch (error) {
+        console.error('Error updating order:', error);
+        showToast('Failed to update order', 'error');
+        // Reload to restore original order
+        loadAdminData();
+    }
+}
+
+// Move item up/down functions
+async function moveItemUp(itemId) {
+    const currentIndex = wishlistItems.findIndex(item => item.id === itemId);
+    if (currentIndex <= 0) return; // Already at top
+    
+    // Swap with previous item
+    const temp = wishlistItems[currentIndex];
+    wishlistItems[currentIndex] = wishlistItems[currentIndex - 1];
+    wishlistItems[currentIndex - 1] = temp;
+    
+    // Update orders
+    wishlistItems[currentIndex].order = currentIndex;
+    wishlistItems[currentIndex - 1].order = currentIndex - 1;
+    
+    // Re-render and update backend
+    renderItems();
+    await updateItemOrderFromArray();
+}
+
+async function moveItemDown(itemId) {
+    const currentIndex = wishlistItems.findIndex(item => item.id === itemId);
+    if (currentIndex >= wishlistItems.length - 1) return; // Already at bottom
+    
+    // Swap with next item
+    const temp = wishlistItems[currentIndex];
+    wishlistItems[currentIndex] = wishlistItems[currentIndex + 1];
+    wishlistItems[currentIndex + 1] = temp;
+    
+    // Update orders
+    wishlistItems[currentIndex].order = currentIndex;
+    wishlistItems[currentIndex + 1].order = currentIndex + 1;
+    
+    // Re-render and update backend
+    renderItems();
+    await updateItemOrderFromArray();
+}
+
+async function updateItemOrderFromArray() {
+    if (!apiToken) {
+        showToast(t('pleaseAuthenticate'), 'error');
+        return;
+    }
+    
+    const itemOrders = wishlistItems.map((item, index) => ({
+        id: item.id,
+        order: index
+    }));
+    
+    try {
+        const response = await fetch('/api/items/reorder', {
+            method: 'POST',
+            headers: {
+                'Authorization': apiToken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ item_orders: itemOrders })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to update order');
+        }
+    } catch (error) {
+        console.error('Error updating order:', error);
+        showToast('Failed to update order', 'error');
+        // Reload to restore original order
+        loadAdminData();
     }
 }
 

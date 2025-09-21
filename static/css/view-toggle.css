@@ -228,6 +228,91 @@
     font-size: 0.7rem;
 }
 
+/* Drag and Drop Styles */
+.sort-mode-active .wishlist-card,
+.sort-mode-active .wishlist-item-list {
+    cursor: grab;
+    transition: all 0.2s ease;
+}
+
+.sort-mode-active .wishlist-card:hover,
+.sort-mode-active .wishlist-item-list:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.sort-mode-active .wishlist-card:active,
+.sort-mode-active .wishlist-item-list:active {
+    cursor: grabbing;
+}
+
+.dragging {
+    opacity: 0.5;
+    transform: rotate(5deg);
+    z-index: 1000;
+}
+
+.drag-over {
+    border: 2px dashed #667eea !important;
+    background: rgba(102, 126, 234, 0.1) !important;
+}
+
+.sort-mode-indicator {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    z-index: 1001;
+    backdrop-filter: blur(10px);
+    animation: fadeIn 0.3s ease;
+}
+
+.sort-mode-active #sort-mode-btn {
+    background: rgba(102, 126, 234, 0.9);
+    color: white;
+}
+
+/* Drag handle for list items */
+.drag-handle {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #ccc;
+    font-size: 1.2rem;
+    cursor: grab;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.sort-mode-active .drag-handle {
+    opacity: 1;
+}
+
+.sort-mode-active .wishlist-item-list {
+    padding-left: 40px;
+}
+
+.sort-mode-active .wishlist-card {
+    position: relative;
+}
+
+.sort-mode-active .wishlist-card::before {
+    content: '⋮⋮';
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    color: #ccc;
+    font-size: 1.2rem;
+    line-height: 0.8;
+    letter-spacing: -2px;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .wishlist-item-list {
@@ -255,5 +340,9 @@
     .list-item-actions {
         width: 100%;
         justify-content: center;
+    }
+    
+    .sort-mode-active .wishlist-item-list {
+        padding-left: 20px;
     }
 }
