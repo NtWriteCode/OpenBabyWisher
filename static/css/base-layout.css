@@ -1,0 +1,67 @@
+/* Custom styles for enhanced UX */
+body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+.glass-effect {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+}
+
+.priority-indicator {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    animation: pulse-soft 2s infinite;
+}
+
+.priority-high .priority-indicator {
+    background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+}
+
+.priority-medium .priority-indicator {
+    background: linear-gradient(45deg, #feca57, #ff9ff3);
+}
+
+.priority-low .priority-indicator {
+    background: linear-gradient(45deg, #48dbfb, #0abde3);
+}
+
+.disabled-item {
+    opacity: 0.6;
+    filter: grayscale(50%);
+    position: relative;
+}
+
+.disabled-item::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #ff6b6b, transparent);
+    transform: translateY(-50%);
+}

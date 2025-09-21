@@ -26,7 +26,7 @@ logging.basicConfig(
     ]
 )
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static", static_url_path="/static")
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-this')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///data/wishlist.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
