@@ -187,7 +187,6 @@ async function authenticateAdmin() {
             apiToken = token;
             isAuthenticated = true;
             
-            console.log('✅ Authentication successful, token stored:', apiToken.substring(0, 10) + '...');
             
             // Show success state
             document.getElementById('auth-form').classList.add('hidden');
@@ -236,15 +235,12 @@ async function loadAdminData() {
     showLoading();
     
     try {
-        console.log('🔄 Loading admin data...');
         
         const [itemsResponse, tagsResponse] = await Promise.all([
             fetch('/api/items'),
             fetch('/api/tags')
         ]);
         
-        console.log('📊 Items response status:', itemsResponse.status);
-        console.log('🏷️ Tags response status:', tagsResponse.status);
         
         if (!itemsResponse.ok) {
             throw new Error(`Items API failed: ${itemsResponse.status}`);
@@ -257,13 +253,11 @@ async function loadAdminData() {
         wishlistItems = await itemsResponse.json();
         existingTags = await tagsResponse.json();
         
-        console.log('✅ Loaded', wishlistItems.length, 'items and', existingTags.length, 'tags');
         
         updateStats();
         renderItems();
         renderHints();
         
-        console.log('✅ Admin data loaded successfully');
         
     } catch (error) {
         console.error('❌ Error loading admin data:', error);
@@ -845,7 +839,6 @@ async function saveItem() {
         return;
     }
     
-    console.log('🔧 saveItem called with token:', apiToken.substring(0, 10) + '...');
     
     const saveBtn = document.getElementById('save-item-btn');
     const originalText = saveBtn.innerHTML;
@@ -1178,16 +1171,13 @@ function initializeEditor() {
     try {
         const editorElement = document.getElementById('item-description-editor');
         if (!editorElement) {
-            console.log('⏳ Editor element not found, will initialize when modal opens');
             return;
         }
         
         if (quillEditor) {
-            console.log('✅ Editor already initialized');
             return;
         }
         
-        console.log('🎨 Initializing Quill editor...');
         
         // Initialize Quill editor with minimal toolbar
         quillEditor = new Quill('#item-description-editor', {
@@ -1209,7 +1199,6 @@ function initializeEditor() {
             document.getElementById('item-description').value = html;
         });
         
-        console.log('✅ Quill editor initialized successfully');
         
     } catch (error) {
         console.error('❌ Error initializing editor:', error);
@@ -1346,11 +1335,15 @@ function handleDragLeave(e) {
 }
 
 function handleDrop(e) {
+    
     if (e.stopPropagation) {
         e.stopPropagation();
     }
     
     if (draggedElement !== this) {
+        const draggedItemId = parseInt(draggedElement.dataset.itemId);
+        const targetItemId = parseInt(this.dataset.itemId);
+        
         // Get the container
         const container = this.parentNode;
         const allItems = Array.from(container.children);
@@ -1359,15 +1352,74 @@ function handleDrop(e) {
         const draggedIndex = allItems.indexOf(draggedElement);
         const targetIndex = allItems.indexOf(this);
         
-        // Move the element
-        if (draggedIndex < targetIndex) {
-            container.insertBefore(draggedElement, this.nextSibling);
-        } else {
-            container.insertBefore(draggedElement, this);
-        }
+        // Start animation
+        animateReorderStart();
         
-        // Update the order in the backend
-        updateItemOrder();
+        // Add drop animation
+        this.classList.add('item-swap-highlight');
+        draggedElement.classList.add('item-swap-highlight');
+        
+        // Handle smooth position swap animation
+        (async () => {
+            try {
+                // Animate the smooth position swap using current positions
+                await animatePositionSwap(draggedItemId, targetItemId);
+                
+                // Find the items in our data array and swap them (like button approach)
+                const draggedItemIndex = wishlistItems.findIndex(item => item.id === draggedItemId);
+                const targetItemIndex = wishlistItems.findIndex(item => item.id === targetItemId);
+                
+                if (draggedItemIndex !== -1 && targetItemIndex !== -1) {
+                    // Swap the items in the data array
+                    const temp = wishlistItems[draggedItemIndex];
+                    wishlistItems[draggedItemIndex] = wishlistItems[targetItemIndex];
+                    wishlistItems[targetItemIndex] = temp;
+                    
+                    // Update their order values
+                    wishlistItems[draggedItemIndex].order = draggedItemIndex;
+                    wishlistItems[targetItemIndex].order = targetItemIndex;
+                    
+                    // Re-render with new order
+                    renderItems();
+                    
+                    // Update backend with new order
+                    await updateItemOrderFromArray();
+                } else {
+                    await updateItemOrder();
+                }
+                
+                // End animation
+                animateReorderEnd();
+                
+                // Clean up animation classes
+                setTimeout(() => {
+                    const cleanupTarget = document.querySelector(`[data-item-id="${targetItemId}"]`);
+                    const cleanupDragged = document.querySelector(`[data-item-id="${draggedItemId}"]`);
+                    
+                    if (cleanupTarget) {
+                        cleanupTarget.classList.remove('item-swap-highlight');
+                    }
+                    if (cleanupDragged) {
+                        cleanupDragged.classList.remove('item-swap-highlight');
+                    }
+                }, 100);
+                
+            } catch (error) {
+                console.error('Error in drop animation:', error);
+                // Clean up on error
+                animateReorderEnd();
+                
+                const errorCleanupTarget = document.querySelector(`[data-item-id="${targetItemId}"]`);
+                const errorCleanupDragged = document.querySelector(`[data-item-id="${draggedItemId}"]`);
+                
+                if (errorCleanupTarget) {
+                    errorCleanupTarget.classList.remove('item-swap-highlight');
+                }
+                if (errorCleanupDragged) {
+                    errorCleanupDragged.classList.remove('item-swap-highlight');
+                }
+            }
+        })();
     }
     
     this.classList.remove('drag-over');
@@ -1434,41 +1486,218 @@ async function updateItemOrder() {
     }
 }
 
+// Animation helper functions
+function animateItemSwap(itemId1, itemId2, direction = 'swap') {
+    const element1 = document.querySelector(`[data-item-id="${itemId1}"]`);
+    const element2 = document.querySelector(`[data-item-id="${itemId2}"]`);
+    
+    if (!element1 || !element2) {
+        return Promise.resolve();
+    }
+    
+    return new Promise((resolve) => {
+        // Add animation classes
+        element1.classList.add('item-swapping', 'item-swap-highlight');
+        element2.classList.add('item-swapping', 'item-swap-highlight');
+        
+        if (direction === 'up') {
+            element1.classList.add('item-moving-up');
+            element2.classList.add('item-moving-down');
+        } else if (direction === 'down') {
+            element1.classList.add('item-moving-down');
+            element2.classList.add('item-moving-up');
+        }
+        
+        // Add glow effect
+        setTimeout(() => {
+            if (element1 && element2) {
+                element1.classList.add('item-swap-glow');
+                element2.classList.add('item-swap-glow');
+            }
+        }, 100);
+        
+        // Remove classes after animation
+        setTimeout(() => {
+            if (element1 && element2) {
+                element1.classList.remove('item-swapping', 'item-swap-highlight', 'item-moving-up', 'item-moving-down', 'item-swap-glow');
+                element2.classList.remove('item-swapping', 'item-swap-highlight', 'item-moving-up', 'item-moving-down', 'item-swap-glow');
+            }
+            resolve();
+        }, 1000); // Now consistent with 1 second
+    });
+}
+
+// Smooth position swap animation
+function animatePositionSwap(itemId1, itemId2) {
+    const element1 = document.querySelector(`[data-item-id="${itemId1}"]`);
+    const element2 = document.querySelector(`[data-item-id="${itemId2}"]`);
+    
+    if (!element1 || !element2) {
+        return Promise.resolve();
+    }
+    
+    return new Promise((resolve) => {
+        // Get the positions of both elements
+        const rect1 = element1.getBoundingClientRect();
+        const rect2 = element2.getBoundingClientRect();
+        
+        // Calculate the distance each element needs to move
+        const deltaY1 = rect2.top - rect1.top;
+        const deltaY2 = rect1.top - rect2.top;
+        const deltaX1 = rect2.left - rect1.left;
+        const deltaX2 = rect1.left - rect2.left;
+        
+        // Add animation classes and highlight
+        element1.classList.add('item-position-swapping', 'item-swap-highlight-smooth');
+        element2.classList.add('item-position-swapping', 'item-swap-highlight-smooth');
+        
+        // Apply the transforms to move elements to each other's positions
+        element1.style.transform = `translate(${deltaX1}px, ${deltaY1}px)`;
+        element2.style.transform = `translate(${deltaX2}px, ${deltaY2}px)`;
+        
+        // After animation completes, clean up
+        setTimeout(() => {
+            // Reset transforms and remove classes
+            element1.style.transform = '';
+            element2.style.transform = '';
+            element1.classList.remove('item-position-swapping', 'item-swap-highlight-smooth');
+            element2.classList.remove('item-position-swapping', 'item-swap-highlight-smooth');
+            
+            resolve();
+        }, 1000); // 1 second animation
+    });
+}
+
+function animateReorderStart() {
+    const container = document.getElementById('admin-items-container');
+    if (container) {
+        container.classList.add('reorder-in-progress');
+    }
+}
+
+function animateReorderEnd() {
+    const container = document.getElementById('admin-items-container');
+    if (container) {
+        setTimeout(() => {
+            container.classList.remove('reorder-in-progress');
+        }, 100);
+    }
+}
+
+// Request debouncing to prevent server overload
+let isReordering = false;
+
 // Move item up/down functions
 async function moveItemUp(itemId) {
+    if (isReordering) {
+        return;
+    }
+    isReordering = true;
+    
     const currentIndex = wishlistItems.findIndex(item => item.id === itemId);
-    if (currentIndex <= 0) return; // Already at top
+    if (currentIndex <= 0) {
+        isReordering = false;
+        return; // Already at top
+    }
     
-    // Swap with previous item
-    const temp = wishlistItems[currentIndex];
-    wishlistItems[currentIndex] = wishlistItems[currentIndex - 1];
-    wishlistItems[currentIndex - 1] = temp;
+    const swapItemId = wishlistItems[currentIndex - 1].id;
     
-    // Update orders
-    wishlistItems[currentIndex].order = currentIndex;
-    wishlistItems[currentIndex - 1].order = currentIndex - 1;
+    // Disable buttons during operation
+    const buttons = document.querySelectorAll(`[onclick*="moveItemUp(${itemId})"], [onclick*="moveItemDown(${itemId})"]`);
+    buttons.forEach(btn => {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+    });
     
-    // Re-render and update backend
-    renderItems();
-    await updateItemOrderFromArray();
+    try {
+        // First, animate the position swap (items move to each other's positions)
+        await animatePositionSwap(itemId, swapItemId);
+        
+        // After animation completes, update the data
+        const temp = wishlistItems[currentIndex];
+        wishlistItems[currentIndex] = wishlistItems[currentIndex - 1];
+        wishlistItems[currentIndex - 1] = temp;
+        
+        // Update orders
+        wishlistItems[currentIndex].order = currentIndex;
+        wishlistItems[currentIndex - 1].order = currentIndex - 1;
+        
+        // Re-render to show new positions
+        renderItems();
+        
+        // Update backend
+        await updateItemOrderFromArray();
+        
+    } catch (error) {
+        console.error('Error in moveItemUp:', error);
+        showToast('Failed to move item', 'error');
+    } finally {
+        // Re-enable buttons after operation completes
+        setTimeout(() => {
+            const newButtons = document.querySelectorAll(`[onclick*="moveItemUp(${itemId})"], [onclick*="moveItemDown(${itemId})"]`);
+            newButtons.forEach(btn => {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            });
+            isReordering = false; // Allow new reorder requests
+        }, 100); // Short delay after re-render
+    }
 }
 
 async function moveItemDown(itemId) {
+    if (isReordering) {
+        return;
+    }
+    isReordering = true;
+    
     const currentIndex = wishlistItems.findIndex(item => item.id === itemId);
-    if (currentIndex >= wishlistItems.length - 1) return; // Already at bottom
+    if (currentIndex >= wishlistItems.length - 1) {
+        isReordering = false;
+        return; // Already at bottom
+    }
     
-    // Swap with next item
-    const temp = wishlistItems[currentIndex];
-    wishlistItems[currentIndex] = wishlistItems[currentIndex + 1];
-    wishlistItems[currentIndex + 1] = temp;
+    const swapItemId = wishlistItems[currentIndex + 1].id;
     
-    // Update orders
-    wishlistItems[currentIndex].order = currentIndex;
-    wishlistItems[currentIndex + 1].order = currentIndex + 1;
+    // Disable buttons during operation
+    const buttons = document.querySelectorAll(`[onclick*="moveItemUp(${itemId})"], [onclick*="moveItemDown(${itemId})"]`);
+    buttons.forEach(btn => {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+    });
     
-    // Re-render and update backend
-    renderItems();
-    await updateItemOrderFromArray();
+    try {
+        // First, animate the position swap (items move to each other's positions)
+        await animatePositionSwap(itemId, swapItemId);
+        
+        // After animation completes, update the data
+        const temp = wishlistItems[currentIndex];
+        wishlistItems[currentIndex] = wishlistItems[currentIndex + 1];
+        wishlistItems[currentIndex + 1] = temp;
+        
+        // Update orders
+        wishlistItems[currentIndex].order = currentIndex;
+        wishlistItems[currentIndex + 1].order = currentIndex + 1;
+        
+        // Re-render to show new positions
+        renderItems();
+        
+        // Update backend
+        await updateItemOrderFromArray();
+        
+    } catch (error) {
+        console.error('Error in moveItemDown:', error);
+        showToast('Failed to move item', 'error');
+    } finally {
+        // Re-enable buttons after operation completes
+        setTimeout(() => {
+            const newButtons = document.querySelectorAll(`[onclick*="moveItemUp(${itemId})"], [onclick*="moveItemDown(${itemId})"]`);
+            newButtons.forEach(btn => {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            });
+            isReordering = false; // Allow new reorder requests
+        }, 100); // Short delay after re-render
+    }
 }
 
 async function updateItemOrderFromArray() {

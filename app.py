@@ -672,7 +672,7 @@ if __name__ == '__main__':
     app.logger.info(f"Starting Waitress server on port {port}")
     
     try:
-        serve(app, host='0.0.0.0', port=port, threads=4)
+        serve(app, host='0.0.0.0', port=port, threads=8, connection_limit=1000)
     except Exception as e:
         app.logger.error(f"Server startup failed: {e}")
         print(f"❌ Server error: {e}", flush=True)

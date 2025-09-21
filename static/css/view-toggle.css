@@ -313,6 +313,189 @@
     letter-spacing: -2px;
 }
 
+/* Swap Animation Effects */
+.item-swapping {
+    transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 999;
+}
+
+.item-swap-highlight {
+    animation: swapHighlight 1s ease-in-out;
+    z-index: 998;
+}
+
+.item-moving-up {
+    animation: moveUp 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.item-moving-down {
+    animation: moveDown 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.item-swap-glow {
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.6), 0 0 40px rgba(102, 126, 234, 0.4);
+    border: 2px solid rgba(102, 126, 234, 0.8);
+}
+
+/* Position swap animation for smooth movement */
+.item-position-swapping {
+    transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    position: relative;
+}
+
+.item-swap-highlight-smooth {
+    /* Enhanced glass effect during animation */
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(20px) !important;
+    border: 2px solid rgba(102, 126, 234, 0.6) !important;
+    box-shadow: 
+        0 8px 25px rgba(102, 126, 234, 0.3),
+        0 4px 15px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    
+    /* Subtle glow effect */
+    animation: smoothGlow 1s ease-in-out;
+}
+
+@keyframes smoothGlow {
+    0%, 100% {
+        box-shadow: 
+            0 8px 25px rgba(102, 126, 234, 0.3),
+            0 4px 15px rgba(0, 0, 0, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+    50% {
+        box-shadow: 
+            0 12px 35px rgba(102, 126, 234, 0.4),
+            0 8px 25px rgba(0, 0, 0, 0.15),
+            inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+}
+
+@keyframes swapHighlight {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    25% {
+        transform: scale(1.05);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+    50% {
+        transform: scale(1.02);
+        box-shadow: 0 12px 30px rgba(102, 126, 234, 0.6);
+    }
+    75% {
+        transform: scale(1.01);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+}
+
+@keyframes moveUp {
+    0% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-20px) scale(1.02);
+        box-shadow: 0 15px 35px rgba(102, 126, 234, 0.3);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+
+@keyframes moveDown {
+    0% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(20px) scale(1.02);
+        box-shadow: 0 15px 35px rgba(102, 126, 234, 0.3);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+
+/* Drag animation improvements */
+.dragging {
+    opacity: 0.95;
+    transform: rotate(2deg) scale(1.03);
+    z-index: 1000;
+    transition: all 0.2s ease;
+    
+    /* Enhanced glass effect while dragging */
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(25px) !important;
+    border: 2px solid rgba(102, 126, 234, 0.7) !important;
+    box-shadow: 
+        0 15px 35px rgba(102, 126, 234, 0.25),
+        0 8px 25px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+}
+
+.drag-over {
+    border: 2px dashed #667eea !important;
+    background: rgba(102, 126, 234, 0.08) !important;
+    backdrop-filter: blur(15px) !important;
+    animation: dragOverPulse 1s infinite;
+}
+
+@keyframes dragOverPulse {
+    0%, 100% {
+        border-color: #667eea;
+        background: rgba(102, 126, 234, 0.08);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+    }
+    50% {
+        border-color: #764ba2;
+        background: rgba(118, 75, 162, 0.12);
+        box-shadow: 0 6px 20px rgba(118, 75, 162, 0.25);
+    }
+}
+
+/* Container animations during reorder */
+.reorder-container {
+    transition: all 0.3s ease;
+}
+
+.reorder-in-progress {
+    position: relative;
+}
+
+.reorder-in-progress::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(102, 126, 234, 0.05) 50%, transparent 70%);
+    animation: reorderShimmer 2s infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.reorder-in-progress .wishlist-card,
+.reorder-in-progress .wishlist-item-list {
+    transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1), 
+                box-shadow 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes reorderShimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .wishlist-item-list {
