@@ -28,6 +28,11 @@ const adminTranslations = {
         hintDismissed: "Hint dismissed",
         confirmDelete: "Are you sure you want to delete this item?",
         confirmDismiss: "Are you sure you want to dismiss this hint?",
+        dismissHintTitle: "Dismiss Notification",
+        dismissHintDescription: "What would you like to do with this item?",
+        dismissAndComplete: "Mark as Completed",
+        dismissOnly: "Just Dismiss",
+        itemCompleted: "Item marked as completed",
         savingItem: "Saving item...",
         deletingItem: "Deleting item...",
         loadingItems: "Loading items...",
@@ -87,6 +92,11 @@ const adminTranslations = {
         hintDismissed: "Jelzés elvetve",
         confirmDelete: "Biztosan törölni szeretnéd ezt az elemet?",
         confirmDismiss: "Biztosan el szeretnéd vetni ezt a jelzést?",
+        dismissHintTitle: "Értesítés Elvetése",
+        dismissHintDescription: "Mit szeretnél tenni ezzel az elemmel?",
+        dismissAndComplete: "Befejezettként Jelölés",
+        dismissOnly: "Csak Elvetés",
+        itemCompleted: "Elem befejezettként jelölve",
         savingItem: "Elem mentése...",
         deletingItem: "Elem törlése...",
         loadingItems: "Elemek betöltése...",
@@ -553,10 +563,10 @@ function openAdminItemModal(itemId) {
                 
                 <!-- Description -->
                 ${item.description ? `
-                    <div class="mb-6">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-3">${t('description') || 'Description'}</h3>
-                        <div class="prose prose-lg max-w-none text-gray-600">${item.description}</div>
-                    </div>
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">${t('description') || 'Description'}</h3>
+                    <div class="prose prose-lg max-w-none text-gray-600">${item.description}</div>
+                </div>
                 ` : ''}
                 
                 <!-- Tags -->
@@ -987,9 +997,40 @@ async function deleteImage(itemId, imageId) {
     }
 }
 
-async function dismissHint(hintId) {
+// Global variable to store current hint being dismissed
+let currentDismissHintId = null;
+
+function dismissHint(hintId) {
+    // Find the hint to get the item information
+    const hint = wishlistItems.flatMap(item => item.hints).find(h => h.id === hintId);
+    if (!hint) return;
+    
+    currentDismissHintId = hintId;
+    showDismissModal();
+}
+
+function showDismissModal() {
+    const modal = document.getElementById('dismiss-modal');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    // Set up event listeners for the buttons
+    document.getElementById('dismiss-and-complete-btn').onclick = () => dismissAndComplete();
+    document.getElementById('dismiss-only-btn').onclick = () => dismissOnly();
+}
+
+function closeDismissModal() {
+    const modal = document.getElementById('dismiss-modal');
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+    currentDismissHintId = null;
+}
+
+async function dismissOnly() {
+    if (!currentDismissHintId) return;
+    
     try {
-        const response = await fetch(`/api/hints/${hintId}`, {
+        const response = await fetch(`/api/hints/${currentDismissHintId}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': apiToken
@@ -998,12 +1039,64 @@ async function dismissHint(hintId) {
         
         if (response.ok) {
             showToast(t('hintDismissed'), 'success');
+            closeDismissModal();
             loadAdminData();
         } else {
             throw new Error('Failed to dismiss hint');
         }
     } catch (error) {
         console.error('Error dismissing hint:', error);
+        showToast(t('error'), 'error');
+    }
+}
+
+async function dismissAndComplete() {
+    if (!currentDismissHintId) return;
+    
+    try {
+        // First find the item that this hint belongs to
+        const hint = wishlistItems.flatMap(item => 
+            item.hints.map(h => ({...h, itemId: item.id}))
+        ).find(h => h.id === currentDismissHintId);
+        
+        if (!hint) {
+            throw new Error('Hint not found');
+        }
+        
+        // Dismiss the hint
+        const dismissResponse = await fetch(`/api/hints/${currentDismissHintId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': apiToken
+            }
+        });
+        
+        if (!dismissResponse.ok) {
+            throw new Error('Failed to dismiss hint');
+        }
+        
+        // Mark the item as completed (disabled = true)
+        const completeResponse = await fetch(`/api/items/${hint.itemId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': apiToken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                disabled: true
+            })
+        });
+        
+        if (!completeResponse.ok) {
+            throw new Error('Failed to mark item as completed');
+        }
+        
+        showToast(t('itemCompleted'), 'success');
+        closeDismissModal();
+        loadAdminData();
+        
+    } catch (error) {
+        console.error('Error dismissing and completing:', error);
         showToast(t('error'), 'error');
     }
 }
@@ -1151,12 +1244,55 @@ function escapeHtml(unsafe) {
         .replace(/'/g, "&#039;");
 }
 
+// Image modal functions
+function openImageModal(url, filename) {
+    document.getElementById('modal-image').src = url;
+    document.getElementById('modal-image').alt = filename;
+    document.getElementById('image-modal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeImageModal() {
+    document.getElementById('image-modal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
 // Remove auto-validation - only authenticate on button click or Enter key
 
-// Close modal on escape
+// Close modals on escape key and click outside
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeItemModal();
+        closeAdminItemModal();
+        closeImageModal();
+        closeDismissModal();
+    }
+});
+
+// Close modals when clicking outside
+document.addEventListener('click', function(e) {
+    // Close add/edit item modal when clicking outside
+    const itemModal = document.getElementById('item-modal');
+    if (itemModal && itemModal.style.display === 'flex' && e.target === itemModal) {
+        closeItemModal();
+    }
+    
+    // Close admin item detail modal when clicking outside
+    const adminItemDetailModal = document.getElementById('admin-item-detail-modal');
+    if (adminItemDetailModal && adminItemDetailModal.style.display === 'flex' && e.target === adminItemDetailModal) {
+        closeAdminItemModal();
+    }
+    
+    // Close image modal when clicking outside
+    const imageModal = document.getElementById('image-modal');
+    if (imageModal && imageModal.style.display === 'flex' && e.target === imageModal) {
+        closeImageModal();
+    }
+    
+    // Close dismiss modal when clicking outside
+    const dismissModal = document.getElementById('dismiss-modal');
+    if (dismissModal && dismissModal.style.display === 'flex' && e.target === dismissModal) {
+        closeDismissModal();
     }
 });
 
@@ -1192,6 +1328,23 @@ function initializeEditor() {
                 ]
             }
         });
+        
+        // Configure link handling to add proper attributes
+        const tooltip = quillEditor.theme.tooltip;
+        const originalSave = tooltip.save.bind(tooltip);
+        tooltip.save = function() {
+            originalSave();
+            // Add target and rel attributes to all links after creation
+            setTimeout(() => {
+                const links = quillEditor.root.querySelectorAll('a');
+                links.forEach(link => {
+                    if (!link.hasAttribute('target')) {
+                        link.setAttribute('target', '_blank');
+                        link.setAttribute('rel', 'noopener noreferrer');
+                    }
+                });
+            }, 10);
+        };
         
         // Sync editor content with hidden textarea
         quillEditor.on('text-change', function() {
@@ -1721,7 +1874,14 @@ async function testNotification() {
         if (response.ok) {
             showToast('Test notification sent! Check your notification service.', 'success');
         } else {
-            showToast(result.message || 'Failed to send test notification', 'error');
+            // Handle different types of errors with appropriate toast styles
+            if (response.status === 400 && result.message && result.message.includes('not configured')) {
+                // Configuration issue - show as warning, not error
+                showToast(result.message, 'warning');
+            } else {
+                // Actual error - show as error
+                showToast(result.message || 'Failed to send test notification', 'error');
+            }
         }
     } catch (error) {
         console.error('Error sending test notification:', error);

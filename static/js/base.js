@@ -56,6 +56,11 @@
                 hintDismissed: "Hint dismissed",
                 itemDeleted: "Item deleted",
                 itemSaved: "Item saved successfully",
+                dismissHintTitle: "Dismiss Notification",
+                dismissHintDescription: "What would you like to do with this item?",
+                dismissAndComplete: "Mark as Completed",
+                dismissOnly: "Just Dismiss",
+                itemCompleted: "Item marked as completed",
                 markedAsAvailable: "Marked as available",
                 markedAsDone: "Marked as done",
                 edit: "Edit",
@@ -146,6 +151,11 @@
                 hintDismissed: "Jelzés elvetve",
                 itemDeleted: "Elem törölve",
                 itemSaved: "Elem sikeresen mentve",
+                dismissHintTitle: "Értesítés Elvetése",
+                dismissHintDescription: "Mit szeretnél tenni ezzel az elemmel?",
+                dismissAndComplete: "Befejezettként Jelölés",
+                dismissOnly: "Csak Elvetés",
+                itemCompleted: "Elem befejezettként jelölve",
                 markedAsAvailable: "Elérhetőként megjelölve",
                 markedAsDone: "Befejezettként megjelölve",
                 edit: "Szerkesztés",
@@ -481,4 +491,40 @@
         
         function formatDate(dateString) {
             return new Date(dateString).toLocaleDateString(currentLang === 'hu' ? 'hu-HU' : 'en-US');
+        }
+
+        // Function to convert URLs in plain text to clickable links
+        // Note: Not used for descriptions since Quill editor handles link creation
+        function linkifyUrls(text) {
+            if (!text) return text;
+            
+            // Skip if text already contains HTML (likely from rich editor)
+            if (text.includes('<a') || text.includes('</a>')) {
+                return text;
+            }
+            
+            // URL regex pattern that matches http/https URLs
+            const urlRegex = /(https?:\/\/[^\s<>"{}|\\^`[\]]+)/gi;
+            
+            return text.replace(urlRegex, function(url) {
+                // Clean up common punctuation at the end of URLs
+                let cleanUrl = url;
+                let trailingPunctuation = '';
+                
+                // Check for trailing punctuation and remove it from the URL
+                const trailingPunctuationRegex = /([.!?;,]+)$/;
+                const match = cleanUrl.match(trailingPunctuationRegex);
+                if (match) {
+                    trailingPunctuation = match[1];
+                    cleanUrl = cleanUrl.slice(0, -trailingPunctuation.length);
+                }
+                
+                // Create a display text (truncate very long URLs)
+                let displayText = cleanUrl;
+                if (cleanUrl.length > 50) {
+                    displayText = cleanUrl.substring(0, 47) + '...';
+                }
+                
+                return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" title="${cleanUrl}">${displayText}</a>${trailingPunctuation}`;
+            });
         }

@@ -1,6 +1,7 @@
 let wishlistItems = [];
 let predefinedMessages = {};
 let currentHintItemId = null;
+let selectedQuickMessage = '';
 let currentPublicView = 'grid'; // 'grid' or 'list'
 
 // Enhanced translations
@@ -12,9 +13,8 @@ const wishlistTranslations = {
         hints: "hints received",
         noItems: "No items yet",
         noItemsDesc: "The wishlist is being prepared with love",
-        quickMessages: "Quick Messages",
-        or: "OR",
-        customMessage: "Custom Message",
+        quickMessages: "Choose your message",
+        selectMessage: "Please select a message",
         hintDescription: "Let others know you're planning to get this gift",
         cancel: "Cancel",
         priority: "Priority",
@@ -34,9 +34,8 @@ const wishlistTranslations = {
         hints: "jelzés érkezett", 
         noItems: "Még nincsenek elemek",
         noItemsDesc: "A kívánságlistát szeretettel készítjük",
-        quickMessages: "Gyors Üzenetek",
-        or: "VAGY",
-        customMessage: "Egyéni Üzenet",
+        quickMessages: "Válassz üzenetet",
+        selectMessage: "Kérlek válassz egy üzenetet",
         hintDescription: "Tudasd másokkal, hogy tervezed megvenni ezt az ajándékot",
         cancel: "Mégse",
         priority: "Prioritás",
@@ -321,10 +320,10 @@ function openItemModal(itemId) {
                 
                 <!-- Description -->
                 ${item.description ? `
-                    <div class="mb-6">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-3">${t('description') || 'Description'}</h3>
-                        <div class="prose prose-lg max-w-none text-gray-600">${item.description}</div>
-                    </div>
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">${t('description') || 'Description'}</h3>
+                    <div class="prose prose-lg max-w-none text-gray-600">${item.description}</div>
+                </div>
                 ` : ''}
                 
                 <!-- Tags -->
@@ -405,8 +404,8 @@ function openHintModal(itemId) {
     const modal = document.getElementById('hint-modal');
     const quickMessagesContainer = document.getElementById('quick-messages');
     
-    // Clear previous state
-    document.getElementById('custom-message').value = '';
+    // Clear previous selection
+    selectedQuickMessage = '';
     
     // Populate quick messages
     const messages = predefinedMessages[currentLang] || predefinedMessages.en || [];
@@ -441,8 +440,8 @@ function selectQuickMessage(message) {
     
     event.target.classList.add('border-purple-400', 'bg-purple-50');
     
-    // Clear custom message when quick message is selected
-    document.getElementById('custom-message').value = '';
+    // Store selected message
+    selectedQuickMessage = message;
 }
 
 function openImageModal(url, filename) {
@@ -463,20 +462,12 @@ function closeImageModal() {
 }
 
 async function sendHint() {
-    const selectedQuickBtn = document.querySelector('.quick-message-btn.border-purple-400');
-    const customMessage = document.getElementById('custom-message').value.trim();
-    
-    let message = '';
-    if (selectedQuickBtn) {
-        message = selectedQuickBtn.textContent.trim();
-    } else if (customMessage) {
-        message = customMessage;
-    }
-    
-    if (!message) {
-        showToast(t('selectOrType'), 'warning');
+    if (!selectedQuickMessage) {
+        showToast(t('selectMessage') || 'Please select a message', 'warning');
         return;
     }
+    
+    const message = selectedQuickMessage;
     
     const sendBtn = document.getElementById('send-hint-btn');
     const originalText = sendBtn.innerHTML;
@@ -534,10 +525,32 @@ window.updateUI = function() {
 // Event listeners
 document.getElementById('send-hint-btn').addEventListener('click', sendHint);
 
-// Close modals on escape key
+// Close modals on escape key and click outside
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
+        closeItemModal();
         closeHintModal();
+        closeImageModal();
+    }
+});
+
+// Close modals when clicking outside
+document.addEventListener('click', function(e) {
+    // Close item detail modal when clicking outside
+    const itemDetailModal = document.getElementById('item-detail-modal');
+    if (itemDetailModal && itemDetailModal.style.display === 'flex' && e.target === itemDetailModal) {
+        closeItemModal();
+    }
+    
+    // Close hint modal when clicking outside
+    const hintModal = document.getElementById('hint-modal');
+    if (hintModal && hintModal.style.display === 'flex' && e.target === hintModal) {
+        closeHintModal();
+    }
+    
+    // Close image modal when clicking outside
+    const imageModal = document.getElementById('image-modal');
+    if (imageModal && imageModal.style.display === 'flex' && e.target === imageModal) {
         closeImageModal();
     }
 });

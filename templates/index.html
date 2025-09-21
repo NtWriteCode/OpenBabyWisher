@@ -92,24 +92,11 @@
         </div>
         
         <!-- Quick Messages -->
-        <div class="mb-6">
-            <label class="block text-sm font-semibold text-gray-700 mb-3" data-i18n="quickMessages">Quick Messages</label>
+        <div class="mb-8">
+            <label class="block text-sm font-semibold text-gray-700 mb-3" data-i18n="quickMessages">Choose your message</label>
             <div id="quick-messages" class="grid grid-cols-1 gap-2">
                 <!-- Quick message buttons will be inserted here -->
             </div>
-        </div>
-        
-        <div class="flex items-center gap-4 mb-6">
-            <hr class="flex-1 border-gray-300">
-            <span class="text-gray-500 text-sm font-medium" data-i18n="or">OR</span>
-            <hr class="flex-1 border-gray-300">
-        </div>
-        
-        <!-- Custom Message -->
-        <div class="mb-8">
-            <label class="block text-sm font-semibold text-gray-700 mb-3" data-i18n="customMessage">Custom Message</label>
-            <textarea id="custom-message" class="input-modern w-full h-24 resize-none" 
-                      data-i18n="hintPlaceholder" placeholder="Add your personal note..."></textarea>
         </div>
         
         <!-- Actions -->
@@ -126,7 +113,7 @@
 </div>
 
 <!-- Image Viewer Modal -->
-<div id="image-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50" style="display: none;">
+<div id="image-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60]" style="display: none;">
     <div class="max-w-4xl max-h-full p-4 w-full">
         <div class="relative">
             <img id="modal-image" class="w-full h-auto max-h-[80vh] object-contain rounded-2xl">

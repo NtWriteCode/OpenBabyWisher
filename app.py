@@ -607,17 +607,23 @@ def get_predefined_messages():
     messages = {
         'en': [
             "I've got this covered! 🎁",
-            "Already purchased this item",
-            "This one's taken care of",
-            "Bought it already!",
-            "Consider this done ✓"
+            "Already ordered this one ✓",
+            "This is on its way! 📦",
+            "Picked this up today! 🛍️",
+            "Found the perfect one! ⭐",
+            "Got it from their wishlist! 💝",
+            "Surprise incoming! 🎉",
+            "Mission accomplished! ✅"
         ],
         'hu': [
             "Ezt már megvettem! 🎁",
-            "Ez már megvan",
-            "Erről már gondoskodtam",
-            "Már megrendeltem!",
-            "Ez már elintézve ✓"
+            "Már megrendeltem ✓",
+            "Ez úton van! 📦",
+            "Ma vettem meg! 🛍️",
+            "Találtam a tökéleteset! ⭐",
+            "A kívánságlistájáról vettem! 💝",
+            "Meglepetés jön! 🎉",
+            "Küldetés teljesítve! ✅"
         ]
     }
     return jsonify(messages)
@@ -658,7 +664,7 @@ def test_notification():
             return jsonify({'message': 'Test notification sent successfully!'}), 200
         else:
             if not notification_service.is_enabled():
-                return jsonify({'message': 'Notifications are not configured. Please set NOTIFICATION_URL environment variable.'}), 400
+                return jsonify({'message': 'Notifications not configured. Set NOTIFICATION_URL environment variable and restart the application.'}), 400
             else:
                 return jsonify({'message': 'Failed to send test notification. Check server logs for details.'}), 500
     except Exception as e:

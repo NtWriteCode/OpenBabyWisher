@@ -142,6 +142,37 @@
     color: #4f46e5;
 }
 
+/* URL styling in descriptions - covers both auto-detected and Quill-generated links */
+.card-description a,
+.list-item-description a,
+.prose a {
+    color: #667eea !important; /* !important to override Quill's default link styles */
+    text-decoration: underline;
+    text-decoration-color: rgba(102, 126, 234, 0.4);
+    text-underline-offset: 2px;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    word-break: break-all; /* Prevent long URLs from breaking layout */
+}
+
+.card-description a:hover,
+.list-item-description a:hover,
+.prose a:hover {
+    color: #5a67d8 !important;
+    text-decoration-color: #5a67d8;
+    background: rgba(102, 126, 234, 0.1) !important;
+    padding: 1px 3px;
+    border-radius: 3px;
+    text-decoration: none !important; /* Remove underline on hover since we have background */
+}
+
+/* Ensure links are visible in expanded descriptions */
+.card-description.expanded a,
+.list-item-description a {
+    display: inline;
+    word-wrap: break-word;
+}
+
 .card-tags {
     display: flex;
     flex-wrap: wrap;

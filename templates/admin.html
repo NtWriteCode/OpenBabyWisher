@@ -279,6 +279,44 @@
     <i class="fas fa-plus"></i>
 </button>
 
+<!-- Image Viewer Modal -->
+<div id="image-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60]" style="display: none;">
+    <div class="max-w-4xl max-h-full p-4 w-full">
+        <div class="relative">
+            <img id="modal-image" class="w-full h-auto max-h-[80vh] object-contain rounded-2xl">
+            <button onclick="closeImageModal()" class="absolute top-4 right-4 w-12 h-12 bg-black/50 text-white rounded-full flex items-center justify-center hover:bg-black/70 transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Dismiss Confirmation Modal -->
+<div id="dismiss-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" style="display: none;">
+    <div class="modal-modern p-8 max-w-md w-full mx-4 animate-slide-up">
+        <div class="text-center mb-6">
+            <div class="text-4xl mb-4">🤔</div>
+            <h3 class="text-2xl font-bold text-gray-800 mb-2" data-i18n="dismissHintTitle">Dismiss Notification</h3>
+            <p class="text-gray-600" data-i18n="dismissHintDescription">What would you like to do with this item?</p>
+        </div>
+        
+        <!-- Actions -->
+        <div class="space-y-3">
+            <button id="dismiss-and-complete-btn" class="btn-modern w-full flex items-center justify-center gap-2">
+                <i class="fas fa-check-circle"></i>
+                <span data-i18n="dismissAndComplete">Mark as Completed</span>
+            </button>
+            <button id="dismiss-only-btn" class="btn-outline-modern w-full flex items-center justify-center gap-2">
+                <i class="fas fa-eye-slash"></i>
+                <span data-i18n="dismissOnly">Just Dismiss</span>
+            </button>
+            <button onclick="closeDismissModal()" class="btn-outline-modern w-full text-gray-600">
+                <span data-i18n="cancel">Cancel</span>
+            </button>
+        </div>
+    </div>
+</div>
+
 </div> <!-- End admin-content -->
 {% endblock %}
 
