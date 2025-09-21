@@ -55,9 +55,31 @@
     </div>
 </div>
 
-<!-- Wishlist Grid -->
-<div id="wishlist-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" style="display: none;">
-    <!-- Items will be loaded here -->
+<!-- View Toggle Controls -->
+<div id="view-controls" class="flex justify-center mb-8" style="display: none;">
+    <div class="glass-effect p-2 rounded-full">
+        <div class="flex gap-1">
+            <button id="grid-view-btn" onclick="setPublicView('grid')" class="view-toggle-btn active" title="Grid View">
+                <i class="fas fa-th"></i>
+            </button>
+            <button id="list-view-btn" onclick="setPublicView('list')" class="view-toggle-btn" title="List View">
+                <i class="fas fa-list"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Wishlist Container -->
+<div id="wishlist-container">
+    <!-- Grid View -->
+    <div id="wishlist-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" style="display: none;">
+        <!-- Items will be loaded here -->
+    </div>
+    
+    <!-- List View -->
+    <div id="wishlist-list" class="space-y-4" style="display: none;">
+        <!-- Items will be loaded here -->
+    </div>
 </div>
 
 <!-- Purchase Hint Modal -->

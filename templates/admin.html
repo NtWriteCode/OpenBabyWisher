@@ -116,7 +116,19 @@
             <i class="fas fa-list mr-3"></i>
             <span data-i18n="wishlistItems">Wishlist Items</span>
         </h2>
-        <div class="flex gap-3">
+        <div class="flex items-center gap-4">
+            <!-- View Toggle -->
+            <div class="glass-effect p-1 rounded-full">
+                <div class="flex gap-1">
+                    <button id="admin-grid-view-btn" onclick="setAdminView('grid')" class="view-toggle-btn active" title="Grid View">
+                        <i class="fas fa-th"></i>
+                    </button>
+                    <button id="admin-list-view-btn" onclick="setAdminView('list')" class="view-toggle-btn" title="List View">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Add Button -->
             <button onclick="showAddItemModal()" class="btn-modern">
                 <i class="fas fa-plus mr-2"></i>
                 <span data-i18n="addNewItem">Add New Item</span>
@@ -124,9 +136,17 @@
         </div>
     </div>
     
-    <!-- Items Grid -->
-    <div id="items-container" class="space-y-6">
-        <!-- Items will be loaded here -->
+    <!-- Items Container -->
+    <div id="admin-items-container">
+        <!-- Grid View -->
+        <div id="admin-items-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Items will be loaded here -->
+        </div>
+        
+        <!-- List View -->
+        <div id="admin-items-list" class="space-y-4" style="display: none;">
+            <!-- Items will be loaded here -->
+        </div>
     </div>
     
 </div>

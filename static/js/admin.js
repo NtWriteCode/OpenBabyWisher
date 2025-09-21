@@ -4,6 +4,7 @@ let currentEditingItem = null;
 let apiToken = '';
 let isAuthenticated = false;
 let quillEditor = null;
+let currentAdminView = 'grid'; // 'grid' or 'list'
 
 // Enhanced admin translations
 const adminTranslations = {
@@ -285,7 +286,8 @@ function updateStats() {
 }
 
 function renderItems() {
-    const container = document.getElementById('items-container');
+    const gridContainer = document.getElementById('admin-items-grid');
+    const listContainer = document.getElementById('admin-items-list');
     const welcomeMessage = document.getElementById('welcome-message');
     const actionButtons = document.getElementById('action-buttons');
     
@@ -293,12 +295,33 @@ function renderItems() {
     if (wishlistItems.length === 0) {
         welcomeMessage.classList.remove('hidden');
         actionButtons.classList.add('hidden');
-        container.innerHTML = '';
+        gridContainer.innerHTML = '';
+        listContainer.innerHTML = '';
         return;
     } else {
         welcomeMessage.classList.add('hidden');
         actionButtons.classList.remove('hidden');
     }
+    
+    // Show appropriate container based on current view
+    if (currentAdminView === 'grid') {
+        gridContainer.style.display = 'grid';
+        listContainer.style.display = 'none';
+        renderAdminGridView();
+    } else {
+        gridContainer.style.display = 'none';
+        listContainer.style.display = 'block';
+        renderAdminListView();
+    }
+    
+    // Apply tag colors after rendering
+    setTimeout(() => {
+        applyTagColors();
+    }, 10);
+}
+
+function renderAdminGridView() {
+    const container = document.getElementById('admin-items-grid');
     
     container.innerHTML = wishlistItems.map((item, index) => {
         const priorityClass = item.priority > 7 ? 'priority-high' : 
@@ -384,11 +407,90 @@ function renderItems() {
             </div>
         `;
     }).join('');
+}
+
+function renderAdminListView() {
+    const container = document.getElementById('admin-items-list');
     
-    // Apply tag colors after rendering
-    setTimeout(() => {
-        applyTagColors();
-    }, 10);
+    container.innerHTML = wishlistItems.map((item, index) => {
+        const firstImage = item.images.length > 0 ? item.images[0] : null;
+        
+        return `
+            <div class="wishlist-item-list admin-list-item ${item.disabled ? 'disabled' : ''}" 
+                 onclick="openAdminItemModal(${item.id})"
+                 style="animation: slide-up 0.3s ease-out ${index * 0.05}s both">
+                
+                <!-- Image Section -->
+                <div class="list-item-image">
+                    ${firstImage ? `
+                        <img src="${firstImage.url}" alt="${escapeHtml(firstImage.original_filename)}">
+                        ${item.images.length > 1 ? `
+                            <div class="list-item-image-count">+${item.images.length - 1}</div>
+                        ` : ''}
+                    ` : `
+                        <div class="list-item-image-placeholder">
+                            <i class="fas fa-gift"></i>
+                        </div>
+                    `}
+                </div>
+                
+                <!-- Content Section -->
+                <div class="list-item-content">
+                    <!-- Header -->
+                    <div class="list-item-header">
+                        <h3 class="list-item-title">${escapeHtml(item.title)}</h3>
+                        <div class="list-item-status">
+                            <div class="card-status ${item.disabled ? 'status-completed' : 'status-available'}">
+                                ${item.disabled ? t('completed') : t('available')}
+                            </div>
+                            ${item.hints.length > 0 ? `
+                                <div class="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-xs font-semibold ml-2">
+                                    ${item.hints.length} ${t('hints')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    
+                    <!-- Description -->
+                    ${item.description ? `
+                        <div class="list-item-description">${item.description}</div>
+                    ` : ''}
+                    
+                    <!-- Tags -->
+                    ${item.tags.length > 0 ? `
+                        <div class="list-item-tags">
+                            ${item.tags.map(tag => `
+                                <span class="tag-item">${escapeHtml(tag)}</span>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    
+                    <!-- Meta Information -->
+                    <div class="list-item-meta">
+                        <div class="list-item-hints">
+                            ${item.images.length > 0 ? `
+                                <i class="fas fa-images text-gray-500"></i>
+                                <span>${item.images.length} image${item.images.length !== 1 ? 's' : ''}</span>
+                            ` : ''}
+                        </div>
+                        
+                        <!-- Admin Actions -->
+                        <div class="list-item-actions">
+                            <button onclick="event.stopPropagation(); editItem(${item.id})" class="list-item-action-btn secondary">
+                                <i class="fas fa-edit"></i>
+                                ${t('edit')}
+                            </button>
+                            <button onclick="event.stopPropagation(); toggleItemStatus(${item.id})" 
+                                    class="list-item-action-btn ${item.disabled ? 'primary' : 'secondary'}">
+                                <i class="fas fa-${item.disabled ? 'undo' : 'check'}"></i>
+                                ${item.disabled ? t('markAsAvailable') : t('markAsDone')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
 }
 
 function openAdminItemModal(itemId) {
@@ -484,6 +586,11 @@ function openAdminItemModal(itemId) {
     
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
+    
+    // Apply tag colors after modal content is rendered
+    setTimeout(() => {
+        applyTagColors();
+    }, 10);
 }
 
 function closeAdminItemModal() {
@@ -1084,12 +1191,43 @@ function initializeEditor() {
     }
 }
 
+// Admin View Toggle Functions
+function setAdminView(view) {
+    currentAdminView = view;
+    
+    // Update button states
+    document.getElementById('admin-grid-view-btn').classList.toggle('active', view === 'grid');
+    document.getElementById('admin-list-view-btn').classList.toggle('active', view === 'list');
+    
+    // Save preference
+    localStorage.setItem('adminViewPreference', view);
+    
+    // Re-render with new view
+    renderItems();
+}
+
+function loadAdminViewPreference() {
+    const savedView = localStorage.getItem('adminViewPreference');
+    if (savedView && (savedView === 'grid' || savedView === 'list')) {
+        currentAdminView = savedView;
+        
+        // Update button states if elements exist
+        const gridBtn = document.getElementById('admin-grid-view-btn');
+        const listBtn = document.getElementById('admin-list-view-btn');
+        if (gridBtn && listBtn) {
+            gridBtn.classList.toggle('active', savedView === 'grid');
+            listBtn.classList.toggle('active', savedView === 'list');
+        }
+    }
+}
+
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
     updateUI();
     loadHeroMessage(); // Load hero message on page load
     loadPersonalizedTexts(); // Load personalized texts on page load
     loadDynamicFavicon(); // Load dynamic favicon on page load
+    loadAdminViewPreference(); // Load view preference
     initializeEditor();
     initializeTagInput();
 });
