@@ -1700,6 +1700,35 @@ async function moveItemDown(itemId) {
     }
 }
 
+// Test notification function
+async function testNotification() {
+    if (!apiToken) {
+        showToast(t('pleaseAuthenticate'), 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/test-notification', {
+            method: 'POST',
+            headers: {
+                'Authorization': apiToken,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            showToast('Test notification sent! Check your notification service.', 'success');
+        } else {
+            showToast(result.message || 'Failed to send test notification', 'error');
+        }
+    } catch (error) {
+        console.error('Error sending test notification:', error);
+        showToast('Error sending test notification', 'error');
+    }
+}
+
 async function updateItemOrderFromArray() {
     if (!apiToken) {
         showToast(t('pleaseAuthenticate'), 'error');

@@ -130,6 +130,34 @@ Set the `BABY_NAME` environment variable to personalize your wishlist with your 
 
 The title rotates randomly each time the page loads and when switching languages, keeping the experience fresh and delightful!
 
+### Notifications
+
+OpenBabyWisher supports notifications via **Shoutrrr** when someone indicates they want to buy an item. This helps you stay informed about gift purchases in real-time.
+
+#### Setup Notifications
+
+1. **Configure notification URL(s)** (Shoutrrr is automatically installed in Docker):
+   ```bash
+   # Discord webhook
+   export NOTIFICATION_URL="discord://webhook_id/webhook_token"
+   
+   # Slack webhook  
+   export NOTIFICATION_URL="slack://webhook_url"
+   
+   # Email (SMTP)
+   export NOTIFICATION_URL="smtp://user:pass@host:port/?from=sender@example.com&to=recipient@example.com"
+   
+   # Multiple services (use NOTIFICATION_URL_1, NOTIFICATION_URL_2, etc.)
+   export NOTIFICATION_URL_1="discord://webhook_id/webhook_token"
+   export NOTIFICATION_URL_2="slack://webhook_url"
+   ```
+
+2. **Test notifications** from the admin panel using the "Test" button.
+
+#### Supported Services
+
+Shoutrrr supports 70+ notification services including Discord, Slack, Telegram, email, Teams, and many more. See the [Shoutrrr documentation](https://containrrr.dev/shoutrrr/) for complete URL format examples.
+
 ### Database
 
 OpenBabyWisher uses SQLite by default, which is perfect for personal/family use:

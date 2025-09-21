@@ -18,6 +18,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
+# Download Shoutrrr binary for notifications
+RUN mkdir -p bin && \
+    curl -L https://github.com/containrrr/shoutrrr/releases/latest/download/shoutrrr_linux_amd64.tar.gz | \
+    tar -xz -C bin/ && \
+    chmod +x bin/shoutrrr
+
 # Create directories with proper permissions
 RUN mkdir -p uploads data && \
     useradd --create-home --shell /bin/bash app && \

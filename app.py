@@ -16,6 +16,7 @@ from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from PIL import Image
 import uuid
+from notifications import notification_service
 
 # Configure logging first
 logging.basicConfig(
@@ -545,6 +546,13 @@ def add_hint(item_id):
     db.session.add(hint)
     db.session.commit()
     
+    # Send notification to admin
+    try:
+        notification_service.send_purchase_notification(item.title, message)
+    except Exception as e:
+        app.logger.error(f"Failed to send purchase notification: {e}")
+        # Don't fail the request if notification fails
+    
     return jsonify(hint.to_dict()), 201
 
 @app.route('/api/hints/<int:hint_id>', methods=['DELETE'])
@@ -636,6 +644,26 @@ def get_personalized_texts_api():
 def get_baby_initial_api():
     """Get baby's initial for favicon"""
     return jsonify({'initial': get_baby_initial()})
+
+@app.route('/api/test-notification', methods=['POST'])
+def test_notification():
+    """Test notification endpoint for admin"""
+    token = request.headers.get('Authorization') or request.form.get('token')
+    if token != app.config['API_TOKEN']:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        success = notification_service.send_test_notification()
+        if success:
+            return jsonify({'message': 'Test notification sent successfully!'}), 200
+        else:
+            if not notification_service.is_enabled():
+                return jsonify({'message': 'Notifications are not configured. Please set NOTIFICATION_URL environment variable.'}), 400
+            else:
+                return jsonify({'message': 'Failed to send test notification. Check server logs for details.'}), 500
+    except Exception as e:
+        app.logger.error(f"Error sending test notification: {e}")
+        return jsonify({'message': f'Error sending test notification: {str(e)}'}), 500
 
 if __name__ == '__main__':
     print("🎯 Baby Wishlist - Starting up...", flush=True)
