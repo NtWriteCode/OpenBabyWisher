@@ -284,9 +284,23 @@
     <div class="max-w-4xl max-h-full p-4 w-full">
         <div class="relative">
             <img id="modal-image" class="w-full h-auto max-h-[80vh] object-contain rounded-2xl">
+            
+            <!-- Navigation Buttons -->
+            <button id="prev-image-btn" onclick="navigateImage(-1)" class="absolute left-4 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-black/50 text-white rounded-full flex items-center justify-center hover:bg-black/70 transition-colors" style="display: none;">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button id="next-image-btn" onclick="navigateImage(1)" class="absolute right-4 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-black/50 text-white rounded-full flex items-center justify-center hover:bg-black/70 transition-colors" style="display: none;">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+            
+            <!-- Close Button -->
             <button onclick="closeImageModal()" class="absolute top-4 right-4 w-12 h-12 bg-black/50 text-white rounded-full flex items-center justify-center hover:bg-black/70 transition-colors">
                 <i class="fas fa-times"></i>
             </button>
+        </div>
+        <div class="text-center mt-4">
+            <p id="modal-image-name" class="text-white/80"></p>
+            <p id="modal-image-counter" class="text-white/60 text-sm mt-1"></p>
         </div>
     </div>
 </div>
