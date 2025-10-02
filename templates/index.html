@@ -140,5 +140,15 @@
 {% endblock %}
 
 {% block scripts %}
+<!-- Wishlist modules - loaded in dependency order -->
+<script src="/static/js/public/wishlist-helpers.js"></script>
+<script src="/static/js/public/wishlist-data.js"></script>
+<script src="/static/js/public/wishlist-render.js"></script>
+<script src="/static/js/public/wishlist-modals.js"></script>
+<script src="/static/js/public/wishlist-images.js"></script>
+<script src="/static/js/public/wishlist-items.js"></script>
+<script src="/static/js/public/wishlist-view.js"></script>
+<!-- Main wishlist entry point (variables, translations, initialization) -->
 <script src="/static/js/index.js"></script>
+
 {% endblock %}
