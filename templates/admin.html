@@ -335,6 +335,19 @@
 {% endblock %}
 
 {% block scripts %}
+<!-- Admin modules - loaded in dependency order -->
+<script src="/static/js/admin/admin-helpers.js"></script>
+<script src="/static/js/admin/admin-auth.js"></script>
+<script src="/static/js/admin/admin-data.js"></script>
+<script src="/static/js/admin/admin-render.js"></script>
+<script src="/static/js/admin/admin-modals.js"></script>
+<script src="/static/js/admin/admin-items.js"></script>
+<script src="/static/js/admin/admin-images.js"></script>
+<script src="/static/js/admin/admin-hints.js"></script>
+<script src="/static/js/admin/admin-view.js"></script>
+<script src="/static/js/admin/admin-tags.js"></script>
+<script src="/static/js/admin/admin-reorder.js"></script>
+<!-- Main admin entry point (variables, translations, initialization) -->
 <script src="/static/js/admin.js"></script>
 
 {% endblock %}
