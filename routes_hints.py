@@ -11,6 +11,12 @@ def add_hint(item_id):
     if not message:
         return jsonify({'error': 'Message is required'}), 400
     
+    # Enforce 200 character limit
+    if len(message) > 200:
+        return jsonify({'error': 'Message too long (max 200 characters)'}), 400
+    
+    # No sanitization needed - frontend uses textContent which is safe
+    # SQLi protection: Using SQLAlchemy ORM (parameterized queries) - already safe
     hint = PurchaseHint(item_id=item.id, message=message)
     db.session.add(hint)
     db.session.commit()

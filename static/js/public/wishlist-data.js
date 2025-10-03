@@ -40,12 +40,30 @@ function updateStats() {
 }
 
 async function sendHint() {
-    if (!selectedQuickMessage) {
-        showToast(t('selectMessage') || 'Please select a message', 'warning');
-        return;
-    }
+    const customInput = document.getElementById('custom-message-input');
+    const customContainer = document.getElementById('custom-message-container');
     
-    const message = selectedQuickMessage;
+    // Determine which message to send
+    let message = '';
+    if (customContainer && customContainer.style.display !== 'none') {
+        // Using custom message
+        message = customInput.value.trim();
+        if (!message) {
+            showToast(t('customMessageRequired') || 'Please write your message', 'warning');
+            return;
+        }
+        if (message.length > 200) {
+            showToast(t('messageTooLong') || 'Message too long (max 200 characters)', 'error');
+            return;
+        }
+    } else {
+        // Using predefined message
+        if (!selectedQuickMessage) {
+            showToast(t('selectMessage') || 'Please select a message', 'warning');
+            return;
+        }
+        message = selectedQuickMessage;
+    }
     
     const sendBtn = document.getElementById('send-hint-btn');
     const originalText = sendBtn.innerHTML;

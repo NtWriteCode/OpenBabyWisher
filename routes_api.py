@@ -24,24 +24,18 @@ def get_tags():
 def get_predefined_messages():
     messages = {
         'en': [
-            "I've got this covered! 🎁",
-            "Already ordered this one ✓",
-            "This is on its way! 📦",
-            "Picked this up today! 🛍️",
-            "Found the perfect one! ⭐",
-            "Got it from their wishlist! 💝",
-            "Surprise incoming! 🎉",
-            "Mission accomplished! ✅"
+            "I'll buy exactly the linked item 🎯",
+            "I found something even better! ✨",
+            "I'll buy this soon 📅",
+            "Just bought it! Hope you'll love it 💝",
+            "Custom message ✍️"
         ],
         'hu': [
-            "Ezt már megvettem! 🎁",
-            "Már megrendeltem ✓",
-            "Ez úton van! 📦",
-            "Ma vettem meg! 🛍️",
-            "Találtam a tökéleteset! ⭐",
-            "A kívánságlistájáról vettem! 💝",
-            "Meglepetés jön! 🎉",
-            "Küldetés teljesítve! ✅"
+            "Pontosan a linkelt terméket veszem meg 🎯",
+            "Találtam valami még jobbat! ✨",
+            "Hamarosan megveszem 📅",
+            "Épp most vettem meg! Remélem tetszeni fog 💝",
+            "Egyéni üzenet ✍️"
         ]
     }
     return jsonify(messages)

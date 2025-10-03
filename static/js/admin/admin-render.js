@@ -245,22 +245,63 @@ function renderHints() {
     }
     
     hintsSection.style.display = 'block';
-    hintsContainer.innerHTML = allHints.map(hint => `
-        <div class="glass-card p-4 flex items-center justify-between animate-slide-in">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-                    <i class="fas fa-gift text-yellow-600"></i>
-                </div>
-                <div>
-                    <h4 class="font-semibold text-gray-800">${escapeHtml(hint.itemTitle)}</h4>
-                    <p class="text-gray-600 text-sm">"${escapeHtml(hint.message)}"</p>
-                    <p class="text-gray-400 text-xs">${formatDate(hint.created_at)}</p>
-                </div>
-            </div>
-            <button onclick="dismissHint(${hint.id})" class="btn-outline-modern btn-sm">
-                <i class="fas fa-check mr-1"></i>
-                <span data-i18n="dismiss">Dismiss</span>
-            </button>
-        </div>
-    `).join('');
+    hintsContainer.innerHTML = ''; // Clear container
+    
+    // Security Note: Using textContent instead of innerHTML for user data
+    // This makes XSS impossible without needing escapeHtml() or backend sanitization
+    
+    allHints.forEach(hint => {
+        // Create card container
+        const card = document.createElement('div');
+        card.className = 'glass-card p-4 flex items-center justify-between animate-slide-in';
+        
+        // Create content wrapper
+        const contentWrapper = document.createElement('div');
+        contentWrapper.className = 'flex items-center gap-4';
+        
+        // Create icon container
+        const iconContainer = document.createElement('div');
+        iconContainer.className = 'w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center';
+        iconContainer.innerHTML = '<i class="fas fa-gift text-yellow-600"></i>';
+        
+        // Create text container
+        const textContainer = document.createElement('div');
+        
+        // Create title (using textContent - no escaping needed!)
+        const title = document.createElement('h4');
+        title.className = 'font-semibold text-gray-800';
+        title.textContent = hint.itemTitle;
+        
+        // Create message (using textContent - no escaping needed!)
+        const message = document.createElement('p');
+        message.className = 'text-gray-600 text-sm';
+        message.textContent = `"${hint.message}"`;
+        
+        // Create date
+        const date = document.createElement('p');
+        date.className = 'text-gray-400 text-xs';
+        date.textContent = formatDate(hint.created_at);
+        
+        // Assemble text container
+        textContainer.appendChild(title);
+        textContainer.appendChild(message);
+        textContainer.appendChild(date);
+        
+        // Assemble content wrapper
+        contentWrapper.appendChild(iconContainer);
+        contentWrapper.appendChild(textContainer);
+        
+        // Create dismiss button (using event listener instead of inline onclick)
+        const dismissBtn = document.createElement('button');
+        dismissBtn.className = 'btn-outline-modern btn-sm';
+        dismissBtn.innerHTML = '<i class="fas fa-check mr-1"></i><span data-i18n="dismiss">Dismiss</span>';
+        dismissBtn.addEventListener('click', () => dismissHint(hint.id));
+        
+        // Assemble card
+        card.appendChild(contentWrapper);
+        card.appendChild(dismissBtn);
+        
+        // Add to container
+        hintsContainer.appendChild(card);
+    });
 }

@@ -33,6 +33,17 @@
     transform: translateY(-2px);
 }
 
+/* Small button variant */
+.btn-sm {
+    padding: 8px 16px !important;
+    font-size: 0.875rem;
+    min-height: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+}
+
 .modal-modern {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);

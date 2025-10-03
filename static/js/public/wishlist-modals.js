@@ -101,21 +101,37 @@ function openHintModal(itemId) {
     currentHintItemId = itemId;
     const modal = document.getElementById('hint-modal');
     const quickMessagesContainer = document.getElementById('quick-messages');
+    const customContainer = document.getElementById('custom-message-container');
+    const customInput = document.getElementById('custom-message-input');
     
-    // Clear previous selection
+    // Clear previous selection and custom input
     selectedQuickMessage = '';
+    customInput.value = '';
+    customContainer.style.display = 'none';
+    updateCharCount();
     
     // Populate quick messages
     const messages = predefinedMessages[currentLang] || predefinedMessages.en || [];
-    quickMessagesContainer.innerHTML = messages.map(msg => `
-        <button onclick="selectQuickMessage('${escapeHtml(msg)}')" 
+    quickMessagesContainer.innerHTML = messages.map((msg, index) => `
+        <button onclick="selectQuickMessage('${escapeHtml(msg)}', ${index === messages.length - 1})" 
                 class="quick-message-btn p-3 text-left border-2 border-gray-200 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition-all">
             ${escapeHtml(msg)}
         </button>
     `).join('');
     
+    // Add character counter event listener
+    customInput.addEventListener('input', updateCharCount);
+    
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
+}
+
+function updateCharCount() {
+    const customInput = document.getElementById('custom-message-input');
+    const charCount = document.getElementById('char-count');
+    if (customInput && charCount) {
+        charCount.textContent = customInput.value.length;
+    }
 }
 
 function closeHintModal() {
@@ -130,14 +146,27 @@ function closeHintModal() {
     });
 }
 
-function selectQuickMessage(message) {
+function selectQuickMessage(message, isCustom = false) {
+    const customContainer = document.getElementById('custom-message-container');
+    const customInput = document.getElementById('custom-message-input');
+    
     // Update UI to show selection
     document.querySelectorAll('.quick-message-btn').forEach(btn => {
         btn.classList.remove('border-purple-400', 'bg-purple-50');
     });
     
-    event.target.classList.add('border-purple-400', 'bg-purple-50');
+    if (event && event.target) {
+        event.target.classList.add('border-purple-400', 'bg-purple-50');
+    }
     
-    // Store selected message
-    selectedQuickMessage = message;
+    if (isCustom) {
+        // Show custom input and clear predefined selection
+        customContainer.style.display = 'block';
+        customInput.focus();
+        selectedQuickMessage = ''; // Will use custom input instead
+    } else {
+        // Hide custom input and use predefined message
+        customContainer.style.display = 'none';
+        selectedQuickMessage = message;
+    }
 }
