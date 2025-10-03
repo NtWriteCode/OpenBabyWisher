@@ -13,7 +13,7 @@
 
 /* Admin cards need more flexible height */
 .wishlist-card.admin-card {
-    overflow: visible;
+    overflow: hidden; /* Keep hidden to clip ::before gradient line properly */
     min-height: 300px;
     display: flex;
     flex-direction: column;
