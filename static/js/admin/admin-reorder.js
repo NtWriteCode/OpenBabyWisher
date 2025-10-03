@@ -22,7 +22,7 @@ function showSortModeIndicator() {
     const indicator = document.createElement('div');
     indicator.id = 'sort-mode-indicator';
     indicator.className = 'sort-mode-indicator';
-    indicator.innerHTML = '<i class="fas fa-arrows-alt mr-2"></i>Drag items to reorder';
+    indicator.innerHTML = `<i class="fas fa-arrows-alt mr-2"></i>${t('dragToReorder')}`;
     document.body.appendChild(indicator);
     
     setTimeout(() => {
@@ -223,7 +223,7 @@ async function updateItemOrder() {
         });
         
         if (response.ok) {
-            showToast('Order updated successfully', 'success');
+            showToast(t('orderUpdated'), 'success');
             // Update local wishlistItems order
             wishlistItems.forEach(item => {
                 const orderInfo = itemOrders.find(o => o.id === item.id);
@@ -238,7 +238,7 @@ async function updateItemOrder() {
         }
     } catch (error) {
         console.error('Error updating order:', error);
-        showToast('Failed to update order', 'error');
+        showToast(t('orderUpdateFailed'), 'error');
         // Reload to restore original order
         loadAdminData();
     }
@@ -382,7 +382,7 @@ async function moveItemUp(itemId) {
         
     } catch (error) {
         console.error('Error in moveItemUp:', error);
-        showToast('Failed to move item', 'error');
+        showToast(t('moveItemFailed'), 'error');
     } finally {
         // Re-enable buttons after operation completes
         setTimeout(() => {
@@ -438,7 +438,7 @@ async function moveItemDown(itemId) {
         
     } catch (error) {
         console.error('Error in moveItemDown:', error);
-        showToast('Failed to move item', 'error');
+        showToast(t('moveItemFailed'), 'error');
     } finally {
         // Re-enable buttons after operation completes
         setTimeout(() => {
@@ -478,7 +478,7 @@ async function updateItemOrderFromArray() {
         }
     } catch (error) {
         console.error('Error updating order:', error);
-        showToast('Failed to update order', 'error');
+        showToast(t('orderUpdateFailed'), 'error');
         // Reload to restore original order
         loadAdminData();
     }

@@ -294,7 +294,7 @@ function renderHints() {
         // Create dismiss button (using event listener instead of inline onclick)
         const dismissBtn = document.createElement('button');
         dismissBtn.className = 'btn-outline-modern btn-sm';
-        dismissBtn.innerHTML = '<i class="fas fa-check mr-1"></i><span data-i18n="dismiss">Dismiss</span>';
+        dismissBtn.innerHTML = `<i class="fas fa-check mr-1"></i><span>${t('dismiss')}</span>`;
         dismissBtn.addEventListener('click', () => dismissHint(hint.id));
         
         // Assemble card

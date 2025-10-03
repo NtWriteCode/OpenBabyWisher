@@ -120,10 +120,10 @@
             <!-- View Toggle -->
             <div class="glass-effect p-1 rounded-full">
                 <div class="flex gap-1">
-                    <button id="admin-grid-view-btn" onclick="setAdminView('grid')" class="view-toggle-btn active" title="Grid View">
+                    <button id="admin-grid-view-btn" onclick="setAdminView('grid')" class="view-toggle-btn active" data-i18n-title="gridView" title="Grid View">
                         <i class="fas fa-th"></i>
                     </button>
-                    <button id="admin-list-view-btn" onclick="setAdminView('list')" class="view-toggle-btn" title="List View">
+                    <button id="admin-list-view-btn" onclick="setAdminView('list')" class="view-toggle-btn" data-i18n-title="listView" title="List View">
                         <i class="fas fa-list"></i>
                     </button>
                 </div>
@@ -131,7 +131,7 @@
             
             <!-- Sort Mode Toggle -->
             <div class="glass-effect p-1 rounded-full">
-                <button id="sort-mode-btn" onclick="toggleSortMode()" class="view-toggle-btn" title="Drag to Reorder">
+                <button id="sort-mode-btn" onclick="toggleSortMode()" class="view-toggle-btn" data-i18n-title="dragToReorder" title="Drag to Reorder">
                     <i class="fas fa-arrows-alt"></i>
                 </button>
             </div>
@@ -143,7 +143,7 @@
             </button>
             
             <!-- Test Notification Button -->
-            <button onclick="testNotification()" class="btn-outline-modern" title="Test Notifications">
+            <button onclick="testNotification()" class="btn-outline-modern" data-i18n-title="testNotifications" title="Test Notifications">
                 <i class="fas fa-bell mr-2"></i>
                 <span>Test</span>
             </button>
@@ -207,23 +207,23 @@
                     <span data-i18n="priorityHint">How soon do you need this item?</span>
                 </p>
                 <div class="priority-pill-selector">
-                    <button type="button" class="priority-pill" data-priority="1" onclick="selectPriority(1)" title="">
+                    <button type="button" class="priority-pill" data-priority="1" onclick="selectPriority(1)" data-i18n-title="priority1Desc" title="">
                         <span class="priority-icon">!</span>
                         <span class="priority-label" data-i18n="priority1">Nice to have</span>
                     </button>
-                    <button type="button" class="priority-pill active" data-priority="2" onclick="selectPriority(2)" title="">
+                    <button type="button" class="priority-pill active" data-priority="2" onclick="selectPriority(2)" data-i18n-title="priority2Desc" title="">
                         <span class="priority-icon">!</span>
                         <span class="priority-label" data-i18n="priority2">Pretty nice</span>
                     </button>
-                    <button type="button" class="priority-pill" data-priority="3" onclick="selectPriority(3)" title="">
+                    <button type="button" class="priority-pill" data-priority="3" onclick="selectPriority(3)" data-i18n-title="priority3Desc" title="">
                         <span class="priority-icon">!!</span>
                         <span class="priority-label" data-i18n="priority3">Really want</span>
                     </button>
-                    <button type="button" class="priority-pill" data-priority="4" onclick="selectPriority(4)" title="">
+                    <button type="button" class="priority-pill" data-priority="4" onclick="selectPriority(4)" data-i18n-title="priority4Desc" title="">
                         <span class="priority-icon">!</span>
                         <span class="priority-label" data-i18n="priority4">Very important</span>
                     </button>
-                    <button type="button" class="priority-pill" data-priority="5" onclick="selectPriority(5)" title="">
+                    <button type="button" class="priority-pill" data-priority="5" onclick="selectPriority(5)" data-i18n-title="priority5Desc" title="">
                         <span class="priority-icon">!!</span>
                         <span class="priority-label" data-i18n="priority5">Essential</span>
                     </button>

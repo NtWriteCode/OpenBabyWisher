@@ -30,7 +30,7 @@
     </div>
     
     <!-- Admin Link (Floating) -->
-    <a href="/admin" class="admin-floating-btn group" title="Admin Panel">
+    <a href="/admin" class="admin-floating-btn group" data-i18n-title="adminPanel" title="Admin Panel">
         <i class="fas fa-user-shield"></i>
         <div class="admin-tooltip">
             <span data-i18n="adminPanel">Admin Panel</span>
@@ -59,10 +59,10 @@
 <div id="view-controls" class="flex justify-center mb-8" style="display: none;">
     <div class="glass-effect p-2 rounded-full">
         <div class="flex gap-1">
-            <button id="grid-view-btn" onclick="setPublicView('grid')" class="view-toggle-btn active" title="Grid View">
+            <button id="grid-view-btn" onclick="setPublicView('grid')" class="view-toggle-btn active" data-i18n-title="gridView" title="Grid View">
                 <i class="fas fa-th"></i>
             </button>
-            <button id="list-view-btn" onclick="setPublicView('list')" class="view-toggle-btn" title="List View">
+            <button id="list-view-btn" onclick="setPublicView('list')" class="view-toggle-btn" data-i18n-title="listView" title="List View">
                 <i class="fas fa-list"></i>
             </button>
         </div>

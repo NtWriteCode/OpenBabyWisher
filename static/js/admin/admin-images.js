@@ -20,7 +20,7 @@ function addImageFromUrl() {
     const url = urlInput.value.trim();
     
     if (!url) {
-        showToast('Please enter an image URL', 'error');
+        showToast(t('enterImageUrl'), 'error');
         return;
     }
     
@@ -28,7 +28,7 @@ function addImageFromUrl() {
     try {
         new URL(url);
     } catch {
-        showToast('Please enter a valid URL', 'error');
+        showToast(t('enterValidUrl'), 'error');
         return;
     }
     
@@ -37,10 +37,10 @@ function addImageFromUrl() {
     img.onload = function() {
         addImagePreview(url, 'url');
         urlInput.value = '';
-        showToast('Image added successfully', 'success');
+        showToast(t('imageAdded'), 'success');
     };
     img.onerror = function() {
-        showToast('Unable to load image from URL', 'error');
+        showToast(t('imageLoadFailed'), 'error');
     };
     img.src = url;
 }

@@ -230,7 +230,7 @@ async function testNotification() {
     const testBtn = document.getElementById('test-notification-btn');
     const originalText = testBtn.innerHTML;
     
-    testBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i><span>Sending...</span>';
+    testBtn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i><span>${t('sending')}</span>`;
     testBtn.disabled = true;
     
     try {
@@ -245,13 +245,13 @@ async function testNotification() {
         const result = await response.json();
         
         if (response.ok) {
-            showToast(result.message || 'Test notification sent!', 'success');
+            showToast(result.message || t('testNotificationSent'), 'success');
         } else {
-            showToast(result.message || 'Failed to send notification', 'error');
+            showToast(result.message || t('notificationFailed'), 'error');
         }
     } catch (error) {
         console.error('Error sending test notification:', error);
-        showToast('Network error occurred', 'error');
+        showToast(t('networkError'), 'error');
     } finally {
         testBtn.innerHTML = originalText;
         testBtn.disabled = false;

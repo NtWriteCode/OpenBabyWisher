@@ -108,7 +108,24 @@
                 welcomeMessage: "Start adding items to your wishlist",
                 addFirstItem: "Add Your First Item",
                 dismiss: "Dismiss",
-                dismissAll: "Dismiss All"
+                dismissAll: "Dismiss All",
+                // Tooltips
+                gridView: "Grid View",
+                listView: "List View",
+                dragToReorder: "Drag to Reorder",
+                testNotifications: "Test Notifications",
+                sending: "Sending...",
+                // Toast notifications
+                testNotificationSent: "Test notification sent!",
+                notificationFailed: "Failed to send notification",
+                networkError: "Network error occurred",
+                orderUpdated: "Order updated successfully",
+                orderUpdateFailed: "Failed to update order",
+                moveItemFailed: "Failed to move item",
+                enterImageUrl: "Please enter an image URL",
+                enterValidUrl: "Please enter a valid URL",
+                imageAdded: "Image added successfully",
+                imageLoadFailed: "Unable to load image from URL"
             },
             hu: {
                 title: "Baba Kívánságlista",
@@ -217,7 +234,24 @@
                 welcomeMessage: "Kezdj el elemeket hozzáadni a kívánságlistádhoz",
                 addFirstItem: "Add Hozzá Az Első Elemet",
                 dismiss: "Elvetés",
-                dismissAll: "Összes Elvetése"
+                dismissAll: "Összes Elvetése",
+                // Tooltips
+                gridView: "Rács Nézet",
+                listView: "Lista Nézet",
+                dragToReorder: "Húzd az Átrendezéshez",
+                testNotifications: "Értesítések Tesztelése",
+                sending: "Küldés...",
+                // Toast notifications
+                testNotificationSent: "Teszt értesítés elküldve!",
+                notificationFailed: "Értesítés küldése sikertelen",
+                networkError: "Hálózati hiba történt",
+                orderUpdated: "Sorrend sikeresen frissítve",
+                orderUpdateFailed: "Sorrend frissítése sikertelen",
+                moveItemFailed: "Elem mozgatása sikertelen",
+                enterImageUrl: "Kérlek adj meg egy kép URL-t",
+                enterValidUrl: "Kérlek adj meg egy érvényes URL-t",
+                imageAdded: "Kép sikeresen hozzáadva",
+                imageLoadFailed: "Nem sikerült betölteni a képet az URL-ről"
             }
         };
 
