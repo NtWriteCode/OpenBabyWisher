@@ -47,7 +47,10 @@ function renderGridView() {
                 
                 <!-- Header -->
                 <div class="card-header">
-                    <h3 class="card-title">${escapeHtml(item.title)}</h3>
+                    <div class="flex items-start justify-between gap-2">
+                        <h3 class="card-title flex-1">${escapeHtml(item.title)}</h3>
+                        ${getPriorityIcon(item.priority)}
+                    </div>
                     <div class="card-status ${item.disabled ? 'status-completed' : hasHints ? 'status-claimed' : 'status-available'}">
                         ${item.disabled ? t('completed') : hasHints ? t('claimed') : t('available')}
                     </div>

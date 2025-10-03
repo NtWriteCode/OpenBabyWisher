@@ -8,7 +8,7 @@ class WishlistItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=True)
-    priority = db.Column(db.Integer, default=0)
+    priority = db.Column(db.Integer, default=2)
     disabled = db.Column(db.Boolean, default=False)
     order = db.Column(db.Integer, default=0)  # Manual ordering field
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

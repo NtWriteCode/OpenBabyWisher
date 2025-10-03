@@ -140,6 +140,9 @@ function closeItemModal() {
     document.getElementById('item-modal').style.display = 'none';
     document.body.style.overflow = 'auto';
     currentEditingItem = null;
+    
+    // Reset priority to default
+    selectPriority(2);
 }
 
 function showDismissModal() {

@@ -13,6 +13,9 @@ function editItem(itemId) {
         document.getElementById('item-description').value = currentEditingItem.description || '';
     }
     
+    // Set priority
+    selectPriority(currentEditingItem.priority || 2);
+    
     // Set tags in the modern tag input
     setTagsFromString(currentEditingItem.tags.join(', '));
     

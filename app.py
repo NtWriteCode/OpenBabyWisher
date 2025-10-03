@@ -40,6 +40,9 @@ from models import db
 db.init_app(app)
 CORS(app)
 
+# Import migrations
+from migrations import ensure_priority_field
+
 # Import and register routes
 from routes_views import index, admin, uploaded_file
 from routes_items import get_items, create_item, update_item, delete_item, reorder_items
@@ -87,6 +90,10 @@ if __name__ == '__main__':
             db.create_all()
             app.logger.info("Database tables created successfully")
             print("✅ Database initialized", flush=True)
+            
+            # Ensure priority field exists (for backward compatibility)
+            ensure_priority_field()
+            print("✅ Database migrations completed", flush=True)
             
         except Exception as e:
             app.logger.error(f"Database initialization failed: {e}")

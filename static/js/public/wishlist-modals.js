@@ -26,6 +26,7 @@ function openItemModal(itemId) {
                                 `<span class="px-3 py-1 bg-gray-500 text-white text-sm font-semibold rounded-full">${t('completed')}</span>` :
                                 `<span class="px-3 py-1 bg-green-500 text-white text-sm font-semibold rounded-full">${t('available')}</span>`
                             }
+                            ${getPriorityBadge(item.priority)}
                         </div>
                     </div>
                     <button onclick="closeItemModal()" class="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors">

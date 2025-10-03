@@ -76,13 +76,15 @@ async function saveItem() {
             tags: document.getElementById('item-tags').value
         };
         
-        // Only include priority and disabled status when editing existing items
+        // Get priority from pill selector (always available in modal)
+        const priorityValue = parseInt(document.getElementById('item-priority').value);
+        itemData.priority = isNaN(priorityValue) ? 2 : priorityValue;
+        
+        // Only include disabled status when editing existing items
         if (currentEditingItem) {
-            itemData.priority = currentEditingItem.priority;
             itemData.disabled = currentEditingItem.disabled;
         } else {
-            // New items get default priority and are always active
-            itemData.priority = 5;
+            // New items are always active
             itemData.disabled = false;
         }
         
