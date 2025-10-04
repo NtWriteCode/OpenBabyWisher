@@ -2,7 +2,7 @@
 from flask import jsonify, request, current_app
 from models import db, WishlistItem, ItemImage
 from werkzeug.utils import secure_filename
-from helpers import allowed_file, resize_image
+from helpers import allowed_file, resize_image, download_image_from_url
 import os
 import uuid
 
@@ -56,12 +56,29 @@ def add_image_from_url(item_id):
     if not image_url.startswith(('http://', 'https://')):
         return jsonify({'error': 'Invalid URL'}), 400
     
-    # Create image record
-    image = ItemImage(
-        item_id=item_id,
-        original_filename=f"url_image_{len(item.images) + 1}.jpg"
+    # Try to download the image and store it locally
+    success, filename, original_filename, error = download_image_from_url(
+        image_url, 
+        current_app.config['UPLOAD_FOLDER']
     )
-    image.url = image_url  # Set URL after creation
+    
+    # Create image record
+    if success and filename:
+        # Successfully downloaded - store as local file
+        image = ItemImage(
+            item_id=item_id,
+            filename=filename,
+            original_filename=original_filename
+        )
+        current_app.logger.info(f"Image stored locally: {filename}")
+    else:
+        # Download failed - fall back to storing URL
+        image = ItemImage(
+            item_id=item_id,
+            original_filename=f"url_image_{len(item.images) + 1}.jpg"
+        )
+        image.url = image_url  # Set URL after creation
+        current_app.logger.info(f"Image stored as URL (download failed): {image_url}")
     
     db.session.add(image)
     db.session.commit()
@@ -76,11 +93,12 @@ def delete_image(item_id, image_id):
     
     image = db.session.query(ItemImage).filter_by(id=image_id, item_id=item_id).first_or_404()
     
-    # Delete file from filesystem
-    try:
-        os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], image.filename))
-    except OSError:
-        pass  # File might not exist
+    # Delete file from filesystem if it's a local file
+    if image.filename:
+        try:
+            os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], image.filename))
+        except OSError:
+            pass  # File might not exist
     
     db.session.delete(image)
     db.session.commit()

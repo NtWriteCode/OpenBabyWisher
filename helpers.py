@@ -3,6 +3,11 @@ from flask import current_app
 from models import db, ItemTag
 from PIL import Image
 import random
+import requests
+from urllib.parse import urlparse
+from pathlib import Path
+import os
+import uuid
 
 def allowed_file(filename):
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
@@ -17,6 +22,84 @@ def resize_image(image_path, max_size=(800, 600)):
             img.save(image_path, optimize=True, quality=85)
     except Exception as e:
         print(f"Error resizing image: {e}")
+
+
+def download_image_from_url(image_url, upload_folder):
+    """
+    Download an image from a URL and save it locally.
+    
+    Args:
+        image_url: The URL to download from
+        upload_folder: The folder to save the image to
+        
+    Returns:
+        tuple: (success: bool, filename: str or None, original_filename: str, error: str or None)
+    """
+    try:
+        current_app.logger.info(f"Attempting to download image from URL: {image_url}")
+        
+        # Download the image with timeout
+        response = requests.get(image_url, timeout=10, stream=True)
+        response.raise_for_status()
+        
+        # Try to determine file extension from URL first
+        parsed_url = urlparse(image_url)
+        url_path = Path(parsed_url.path)
+        ext = url_path.suffix.lower()
+        
+        # Check content type as a hint (but don't trust it completely)
+        content_type = response.headers.get('Content-Type', '')
+        
+        # If no extension from URL or invalid, try to get from content-type
+        if not ext or ext not in ['.png', '.jpg', '.jpeg', '.gif', '.webp']:
+            ext_map = {
+                'image/png': '.png',
+                'image/jpeg': '.jpg',
+                'image/jpg': '.jpg',
+                'image/gif': '.gif',
+                'image/webp': '.webp'
+            }
+            ext = ext_map.get(content_type, '.jpg')
+        
+        # Generate unique filename
+        filename = str(uuid.uuid4()) + ext
+        filepath = os.path.join(upload_folder, filename)
+        
+        # Save the downloaded image
+        with open(filepath, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+        
+        # Try to open with PIL to validate it's actually an image
+        try:
+            with Image.open(filepath) as img:
+                # Verify it's a valid image by trying to load it
+                img.verify()
+            # Reopen for resizing (verify() closes the file)
+            resize_image(filepath)
+        except Exception as img_error:
+            # Not a valid image, clean up and raise
+            os.remove(filepath)
+            raise ValueError(f"Downloaded file is not a valid image: {img_error}")
+        
+        # Get original filename from URL if possible
+        original_filename = url_path.name if url_path.name else f"url_image.jpg"
+        
+        current_app.logger.info(f"Successfully downloaded and saved image as {filename}")
+        return True, filename, original_filename, None
+        
+    except requests.RequestException as e:
+        error_msg = f"Network error: {e}"
+        current_app.logger.warning(f"Failed to download image from URL: {error_msg}")
+        return False, None, f"url_image.jpg", error_msg
+    except ValueError as e:
+        error_msg = str(e)
+        current_app.logger.warning(f"Failed to download image from URL: {error_msg}")
+        return False, None, f"url_image.jpg", error_msg
+    except Exception as e:
+        error_msg = f"Unexpected error: {e}"
+        current_app.logger.warning(f"Failed to download image from URL: {error_msg}")
+        return False, None, f"url_image.jpg", error_msg
 
 
 def get_existing_tags():

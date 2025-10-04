@@ -91,6 +91,11 @@ if __name__ == '__main__':
             
             # Ensure priority field exists (for backward compatibility)
             ensure_priority_field()
+            
+            # Migrate URL-based images to local storage
+            from migrations import migrate_url_images_to_local
+            migrate_url_images_to_local()
+            
             print("✅ Database migrations completed", flush=True)
             
         except Exception as e:

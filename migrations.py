@@ -38,3 +38,51 @@ def ensure_priority_field():
         current_app.logger.error(f"Failed to ensure priority field: {e}")
         db.session.rollback()
 
+
+def migrate_url_images_to_local():
+    """Download all URL-based images and store them locally"""
+    from models import db, ItemImage
+    from flask import current_app
+    from helpers import download_image_from_url
+    
+    print("🔄 Checking for URL-based images to download...", flush=True)
+    
+    # Find all images that have a URL but no local filename
+    url_images = ItemImage.query.filter(
+        ItemImage.filename.is_(None),
+        ItemImage.url.isnot(None)
+    ).all()
+    
+    if not url_images:
+        print("✅ No URL-based images found. All images are already local.", flush=True)
+        return
+    
+    print(f"📥 Found {len(url_images)} URL-based images. Attempting to download...", flush=True)
+    
+    success_count = 0
+    fail_count = 0
+    
+    for image in url_images:
+        image_url = image.url
+        print(f"   Downloading: {image_url[:80]}...", flush=True)
+        
+        # Use the shared download helper
+        success, filename, original_filename, error = download_image_from_url(
+            image_url,
+            current_app.config['UPLOAD_FOLDER']
+        )
+        
+        if success and filename:
+            # Update the database record
+            image.filename = filename
+            # Keep the URL as reference, but filename takes precedence
+            db.session.commit()
+            
+            success_count += 1
+            print(f"   ✅ Downloaded and saved as: {filename}", flush=True)
+        else:
+            fail_count += 1
+            print(f"   ⚠️  Failed to download (keeping as URL): {error[:100] if error else 'Unknown error'}", flush=True)
+    
+    print(f"✅ URL image migration complete: {success_count} downloaded, {fail_count} kept as URLs.", flush=True)
+
