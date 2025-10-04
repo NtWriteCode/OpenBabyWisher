@@ -1,6 +1,6 @@
 # Miscellaneous API Routes
 from flask import jsonify, request, current_app
-from helpers import get_existing_tags, get_hero_messages, get_random_hero_message, get_personalized_texts, get_baby_initial
+from helpers import get_existing_tags, get_random_hero_message, get_personalized_texts, get_baby_initial
 
 def test_auth():
     """Test endpoint specifically for validating admin token"""
@@ -45,11 +45,6 @@ def get_hero_message():
     language = request.args.get('lang', 'en')
     message = get_random_hero_message(language)
     return jsonify({'message': message})
-
-
-def get_hero_messages_api():
-    """Get all hero messages for both languages"""
-    return jsonify(get_hero_messages())
 
 
 def get_personalized_texts_api():
