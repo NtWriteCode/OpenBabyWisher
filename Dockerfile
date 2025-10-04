@@ -21,8 +21,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Download Shoutrrr binary for notifications with verification
+# Use TARGETARCH to download the correct architecture
 RUN mkdir -p bin && \
-    curl -fsSL https://github.com/containrrr/shoutrrr/releases/latest/download/shoutrrr_linux_amd64.tar.gz | \
+    ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then SHOUTRRR_ARCH="amd64"; \
+    elif [ "$ARCH" = "aarch64" ]; then SHOUTRRR_ARCH="arm64"; \
+    else SHOUTRRR_ARCH="$ARCH"; fi && \
+    echo "Downloading Shoutrrr for architecture: $SHOUTRRR_ARCH" && \
+    curl -fsSL "https://github.com/containrrr/shoutrrr/releases/latest/download/shoutrrr_linux_${SHOUTRRR_ARCH}.tar.gz" | \
     tar -xz -C bin/ && \
     chmod +x bin/shoutrrr && \
     bin/shoutrrr --version
