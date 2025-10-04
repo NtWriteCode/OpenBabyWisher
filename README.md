@@ -58,12 +58,21 @@ This project was created to solve a common problem for new parents:
    cd openbabywisher
    ```
 
-2. **Create a docker-compose.yml file:**
+2. **Find your user ID (important for file permissions):**
+   ```bash
+   id -u  # Note this number (usually 1000 or 1001)
+   id -g  # Note this number (usually same as user ID)
+   ```
+
+3. **Create a docker-compose.yml file:**
    ```yaml
    services:
      openbabywisher:
        image: ntwritecode/openbabywisher:latest
        container_name: openbabywisher
+       # IMPORTANT: Replace with YOUR user ID from step 2
+       # This ensures the container can write to ./data and ./uploads
+       user: "1001:1001"  # Change to match your 'id -u' and 'id -g' output
        ports:
          - "5000:5000"
        environment:
@@ -72,18 +81,19 @@ This project was created to solve a common problem for new parents:
          - BABY_NAME=Emma
          - DATABASE_URL=sqlite:////app/data/wishlist.db
          - PORT=5000
+         - NOTIFICATION_URL=  # Optional: Add Shoutrrr URL for notifications
        volumes:
          - ./data:/app/data:rw
          - ./uploads:/app/uploads:rw
        restart: unless-stopped
    ```
 
-3. **Start the application:**
+4. **Start the application:**
    ```bash
    docker-compose up -d
    ```
 
-4. **Access your wishlist:**
+5. **Access your wishlist:**
    - **Public wishlist:** http://localhost:5000
    - **Admin panel:** http://localhost:5000/admin (use your API_TOKEN to log in)
 

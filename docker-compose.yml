@@ -2,6 +2,8 @@ services:
   openbabywisher:
     build: .
     container_name: openbabywisher
+    # Override with your host user's UID:GID (run: id -u && id -g)
+    # This ensures the container can write to ./data and ./uploads
     user: "1001:1001"
     ports:
       - "5000:5000"
@@ -11,6 +13,7 @@ services:
       - BABY_NAME=${BABY_NAME:-our little one}
       - DATABASE_URL=sqlite:////app/data/wishlist.db
       - PORT=5000
+      - NOTIFICATION_URL=${NOTIFICATION_URL:-}
     volumes:
       - ./data:/app/data:rw
       - ./uploads:/app/uploads:rw
