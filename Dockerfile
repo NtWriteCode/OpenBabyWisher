@@ -17,21 +17,18 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY . .
-
-# Download Shoutrrr binary for notifications with verification
-# Use TARGETARCH to download the correct architecture
+# Download Shoutrrr binary BEFORE copying code (better caching)
+# Use TARGETARCH buildx variable for multi-platform builds
+ARG TARGETARCH
 RUN mkdir -p bin && \
-    ARCH=$(uname -m) && \
-    if [ "$ARCH" = "x86_64" ]; then SHOUTRRR_ARCH="amd64"; \
-    elif [ "$ARCH" = "aarch64" ]; then SHOUTRRR_ARCH="arm64"; \
-    else SHOUTRRR_ARCH="$ARCH"; fi && \
-    echo "Downloading Shoutrrr for architecture: $SHOUTRRR_ARCH" && \
-    curl -fsSL "https://github.com/containrrr/shoutrrr/releases/latest/download/shoutrrr_linux_${SHOUTRRR_ARCH}.tar.gz" | \
+    echo "Downloading Shoutrrr for architecture: ${TARGETARCH}" && \
+    curl -fsSL "https://github.com/containrrr/shoutrrr/releases/latest/download/shoutrrr_linux_${TARGETARCH}.tar.gz" | \
     tar -xz -C bin/ && \
     chmod +x bin/shoutrrr && \
     bin/shoutrrr --version
+
+# Copy application code (last for better caching)
+COPY . .
 
 # Create directories (will be replaced by mounted volumes at runtime)
 # Note: When using docker-compose with mounted volumes and 'user:' directive,
