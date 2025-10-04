@@ -164,6 +164,9 @@ function closeDismissModal() {
     currentDismissHintId = null;
 }
 
+// Image Modal Functions
+// Note: isImageZoomed, setupMagnifyingGlass, and toggleImageZoom are in core/image-zoom.js
+
 function openImageModal(url, filename, itemId = null, imageIndex = 0) {
     const modal = document.getElementById('image-modal');
     const img = document.getElementById('modal-image');
@@ -171,6 +174,12 @@ function openImageModal(url, filename, itemId = null, imageIndex = 0) {
     const counter = document.getElementById('modal-image-counter');
     const prevBtn = document.getElementById('prev-image-btn');
     const nextBtn = document.getElementById('next-image-btn');
+    
+    // Reset zoom state (using global from image-zoom.js)
+    isImageZoomed = false;
+    img.style.maxHeight = '80vh';
+    img.style.maxWidth = '';
+    img.style.cursor = 'zoom-in';
     
     // Find the item if itemId is provided
     if (itemId) {
@@ -204,12 +213,23 @@ function openImageModal(url, filename, itemId = null, imageIndex = 0) {
     
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
+    
+    // Set up magnifying glass functionality
+    setupMagnifyingGlass();
 }
 
 function closeImageModal() {
     const modal = document.getElementById('image-modal');
+    const img = document.getElementById('modal-image');
+    
     modal.style.display = 'none';
     document.body.style.overflow = 'auto';
+    
+    // Reset zoom state (using global from image-zoom.js)
+    isImageZoomed = false;
+    img.style.maxHeight = '80vh';
+    img.style.maxWidth = '';
+    img.style.cursor = 'zoom-in';
     
     // Reset navigation variables
     currentImageItem = null;
