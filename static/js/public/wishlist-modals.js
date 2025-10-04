@@ -113,11 +113,20 @@ function openHintModal(itemId) {
     // Populate quick messages
     const messages = predefinedMessages[currentLang] || predefinedMessages.en || [];
     quickMessagesContainer.innerHTML = messages.map((msg, index) => `
-        <button onclick="selectQuickMessage('${escapeHtml(msg)}', ${index === messages.length - 1})" 
+        <button data-message="${escapeHtml(msg)}" data-is-custom="${index === messages.length - 1}"
                 class="quick-message-btn p-3 text-left border-2 border-gray-200 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition-all">
             ${escapeHtml(msg)}
         </button>
     `).join('');
+    
+    // Add click event listeners to quick message buttons
+    document.querySelectorAll('.quick-message-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const message = this.getAttribute('data-message');
+            const isCustom = this.getAttribute('data-is-custom') === 'true';
+            selectQuickMessage(message, isCustom);
+        });
+    });
     
     // Add character counter event listener
     customInput.addEventListener('input', updateCharCount);
