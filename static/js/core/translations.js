@@ -125,7 +125,8 @@
                 enterImageUrl: "Please enter an image URL",
                 enterValidUrl: "Please enter a valid URL",
                 imageAdded: "Image added successfully",
-                imageLoadFailed: "Unable to load image from URL"
+                imageLoadFailed: "Unable to load image from URL",
+                imagePasted: "Image added from clipboard!"
             },
             hu: {
                 title: "Baba Kívánságlista",
@@ -251,7 +252,8 @@
                 enterImageUrl: "Kérlek adj meg egy kép URL-t",
                 enterValidUrl: "Kérlek adj meg egy érvényes URL-t",
                 imageAdded: "Kép sikeresen hozzáadva",
-                imageLoadFailed: "Nem sikerült betölteni a képet az URL-ről"
+                imageLoadFailed: "Nem sikerült betölteni a képet az URL-ről",
+                imagePasted: "Kép hozzáadva a vágólapról!"
             }
         };
 

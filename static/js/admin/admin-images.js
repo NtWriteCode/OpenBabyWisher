@@ -1,5 +1,62 @@
 // Admin Image Handling Functions
 
+// Handle Ctrl+V paste for images
+function initializePasteHandler() {
+    const modal = document.getElementById('item-modal');
+    
+    if (modal) {
+        // Remove any existing paste handler to avoid duplicates
+        const oldHandler = modal._pasteHandler;
+        if (oldHandler) {
+            modal.removeEventListener('paste', oldHandler);
+        }
+        
+        const pasteHandler = function(e) {
+            // Get Quill editor element
+            const quillContainer = document.querySelector('#quill-editor');
+            const isQuillFocused = quillContainer && quillContainer.contains(document.activeElement);
+            
+            // Check if clipboard has image data
+            const items = e.clipboardData?.items;
+            if (!items) return;
+            
+            let hasImage = false;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    hasImage = true;
+                    const file = items[i].getAsFile();
+                    
+                    if (file) {
+                        // ALWAYS prevent default paste behavior for images
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        // If in Quill, also stop immediate propagation to prevent Quill from handling it
+                        if (isQuillFocused) {
+                            e.stopImmediatePropagation();
+                        }
+                        
+                        // Read and add image to preview
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            addImagePreview(event.target.result, 'file', `pasted-image-${Date.now()}.png`);
+                            showToast(t('imageAdded') || 'Image added from clipboard!', 'success');
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                    break;
+                }
+            }
+        };
+        
+        // Store handler reference for cleanup
+        modal._pasteHandler = pasteHandler;
+        
+        // Add handler with capture phase to intercept before Quill
+        modal.addEventListener('paste', pasteHandler, true);
+    }
+}
+
 function previewImages(input) {
     const container = document.getElementById('image-preview');
     const files = Array.from(input.files);

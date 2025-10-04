@@ -32,6 +32,12 @@ function editItem(itemId) {
     `).join('');
     
     updateTagSuggestions();
+    
+    // Initialize paste handler for Ctrl+V image paste
+    setTimeout(() => {
+        initializePasteHandler();
+    }, 100);
+    
     document.getElementById('item-modal').style.display = 'flex';
     document.body.style.overflow = 'hidden';
 }

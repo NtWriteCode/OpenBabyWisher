@@ -130,6 +130,8 @@ function showAddItemModal() {
         if (!quillEditor) {
             initializeEditor();
         }
+        // Initialize paste handler for Ctrl+V image paste
+        initializePasteHandler();
     }, 100);
     
     document.getElementById('item-modal').style.display = 'flex';
