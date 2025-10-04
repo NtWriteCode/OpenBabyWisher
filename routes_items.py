@@ -1,6 +1,7 @@
 # Item CRUD Routes
 from flask import jsonify, request, current_app
 from models import db, WishlistItem, ItemTag
+import os
 
 def get_items():
     items = db.session.query(WishlistItem).order_by(WishlistItem.order.asc(), WishlistItem.priority.desc(), WishlistItem.created_at.desc()).all()
@@ -81,12 +82,16 @@ def delete_item(item_id):
     
     item = db.get_or_404(WishlistItem, item_id)
     
-    # Delete associated images from filesystem
+    # Delete associated images from filesystem (only local files, not URLs)
     for image in item.images:
-        try:
-            os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], image.filename))
-        except OSError:
-            pass  # File might not exist
+        if image.filename:  # Only delete if it's a local file
+            try:
+                filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], image.filename)
+                os.remove(filepath)
+                current_app.logger.info(f"Deleted image file: {image.filename}")
+            except OSError as e:
+                current_app.logger.warning(f"Could not delete image file {image.filename}: {e}")
+                pass  # File might not exist or already deleted
     
     db.session.delete(item)
     db.session.commit()

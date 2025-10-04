@@ -86,3 +86,57 @@ def migrate_url_images_to_local():
     
     print(f"✅ URL image migration complete: {success_count} downloaded, {fail_count} kept as URLs.", flush=True)
 
+
+def cleanup_orphaned_files():
+    """Remove files from uploads directory that have no database reference"""
+    from models import db, ItemImage
+    from flask import current_app
+    import os
+    
+    print("🧹 Checking for orphaned image files...", flush=True)
+    
+    upload_folder = current_app.config['UPLOAD_FOLDER']
+    
+    # Check if uploads directory exists
+    if not os.path.exists(upload_folder):
+        print("✅ No uploads directory found, skipping orphan cleanup.", flush=True)
+        return
+    
+    # Get all filenames from database
+    db_filenames = set()
+    all_images = ItemImage.query.all()
+    for image in all_images:
+        if image.filename:  # Only add local files, not URLs
+            db_filenames.add(image.filename)
+    
+    # Get all files in uploads directory
+    try:
+        disk_files = [f for f in os.listdir(upload_folder) if os.path.isfile(os.path.join(upload_folder, f))]
+    except OSError as e:
+        print(f"⚠️  Could not read uploads directory: {e}", flush=True)
+        return
+    
+    # Find orphaned files (on disk but not in database)
+    orphaned_files = [f for f in disk_files if f not in db_filenames]
+    
+    if not orphaned_files:
+        print(f"✅ No orphaned files found. All {len(disk_files)} files are referenced in database.", flush=True)
+        return
+    
+    print(f"🗑️  Found {len(orphaned_files)} orphaned files to delete...", flush=True)
+    
+    deleted_count = 0
+    failed_count = 0
+    
+    for filename in orphaned_files:
+        try:
+            filepath = os.path.join(upload_folder, filename)
+            os.remove(filepath)
+            deleted_count += 1
+            print(f"   ✅ Deleted: {filename}", flush=True)
+        except OSError as e:
+            failed_count += 1
+            print(f"   ⚠️  Failed to delete {filename}: {e}", flush=True)
+    
+    print(f"✅ Orphaned file cleanup complete: {deleted_count} deleted, {failed_count} failed.", flush=True)
+

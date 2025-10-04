@@ -93,8 +93,11 @@ if __name__ == '__main__':
             ensure_priority_field()
             
             # Migrate URL-based images to local storage
-            from migrations import migrate_url_images_to_local
+            from migrations import migrate_url_images_to_local, cleanup_orphaned_files
             migrate_url_images_to_local()
+            
+            # Clean up orphaned image files
+            cleanup_orphaned_files()
             
             print("✅ Database migrations completed", flush=True)
             
