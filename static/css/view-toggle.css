@@ -1,4 +1,19 @@
 /* View Toggle Styles */
+
+/* Hide view toggle on mobile (single column only) */
+#view-controls,
+.glass-effect:has(#admin-grid-view-btn) {
+    display: none !important;
+}
+
+/* Show view toggle on tablets and above (where grid is 2+ columns) */
+@media (min-width: 768px) {
+    #view-controls,
+    .glass-effect:has(#admin-grid-view-btn) {
+        display: flex !important;
+    }
+}
+
 .view-toggle-btn {
     display: flex;
     align-items: center;

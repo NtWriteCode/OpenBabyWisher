@@ -15,6 +15,12 @@ function setPublicView(view) {
 }
 
 function loadPublicViewPreference() {
+    // On mobile (< 768px), always use list view since grid is single column anyway
+    if (window.innerWidth < 768) {
+        currentPublicView = 'list';
+        return;
+    }
+    
     const savedView = localStorage.getItem('publicViewPreference');
     if (savedView && (savedView === 'grid' || savedView === 'list')) {
         currentPublicView = savedView;

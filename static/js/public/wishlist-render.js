@@ -15,7 +15,8 @@ function renderWishlist() {
     }
     
     empty.style.display = 'none';
-    viewControls.style.display = 'flex';
+    // View controls visibility is now handled by CSS media query
+    // Only show if width >= 768px (where grid has 2+ columns)
     
     // Show appropriate container based on current view
     if (currentPublicView === 'grid') {

@@ -15,6 +15,12 @@ function setAdminView(view) {
 }
 
 function loadAdminViewPreference() {
+    // On mobile (< 768px), always use list view since grid is single column anyway
+    if (window.innerWidth < 768) {
+        currentAdminView = 'list';
+        return;
+    }
+    
     const savedView = localStorage.getItem('adminViewPreference');
     if (savedView && (savedView === 'grid' || savedView === 'list')) {
         currentAdminView = savedView;
