@@ -1,7 +1,6 @@
 # Miscellaneous API Routes
 from flask import jsonify, request, current_app
 from helpers import get_existing_tags, get_hero_messages, get_random_hero_message, get_personalized_texts, get_baby_initial
-from notifications import notification_service
 
 def test_auth():
     """Test endpoint specifically for validating admin token"""
@@ -62,24 +61,4 @@ def get_personalized_texts_api():
 def get_baby_initial_api():
     """Get baby's initial for favicon"""
     return jsonify({'initial': get_baby_initial()})
-
-
-def test_notification():
-    """Test notification endpoint for admin"""
-    token = request.headers.get('Authorization') or request.form.get('token')
-    if token != current_app.config['API_TOKEN']:
-        return jsonify({'error': 'Unauthorized'}), 401
-    
-    try:
-        success = notification_service.send_test_notification()
-        if success:
-            return jsonify({'message': 'Test notification sent successfully!'}), 200
-        else:
-            if not notification_service.is_enabled():
-                return jsonify({'message': 'Notifications not configured. Set NOTIFICATION_URL environment variable and restart the application.'}), 400
-            else:
-                return jsonify({'message': 'Failed to send test notification. Check server logs for details.'}), 500
-    except Exception as e:
-        current_app.logger.error(f"Error sending test notification: {e}")
-        return jsonify({'message': f'Error sending test notification: {str(e)}'}), 500
 

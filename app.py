@@ -48,7 +48,7 @@ from routes_views import index, admin, uploaded_file
 from routes_items import get_items, create_item, update_item, delete_item, reorder_items
 from routes_images import upload_image, add_image_from_url, delete_image
 from routes_hints import add_hint, dismiss_hint
-from routes_api import test_auth, get_tags, get_predefined_messages, get_hero_message, get_hero_messages_api, get_personalized_texts_api, get_baby_initial_api, test_notification
+from routes_api import test_auth, get_tags, get_predefined_messages, get_hero_message, get_hero_messages_api, get_personalized_texts_api, get_baby_initial_api
 
 # Register view routes
 app.add_url_rule('/', 'index', index)
@@ -79,7 +79,6 @@ app.add_url_rule('/api/hero-message', 'get_hero_message', get_hero_message, meth
 app.add_url_rule('/api/hero-messages', 'get_hero_messages_api', get_hero_messages_api, methods=['GET'])
 app.add_url_rule('/api/personalized-texts', 'get_personalized_texts_api', get_personalized_texts_api, methods=['GET'])
 app.add_url_rule('/api/baby-initial', 'get_baby_initial_api', get_baby_initial_api, methods=['GET'])
-app.add_url_rule('/api/test-notification', 'test_notification', test_notification, methods=['POST'])
 
 if __name__ == '__main__':
     print("🎯 Baby Wishlist - Starting up...", flush=True)
@@ -103,6 +102,17 @@ if __name__ == '__main__':
     # Use Waitress for production
     from waitress import serve
     port = int(os.environ.get('PORT', 5000))
+    
+    # Send test notification on startup
+    try:
+        from notifications import notification_service
+        notification_service.send_notification(
+            "🎉 Baby Wishlist Started",
+            "The Baby Wishlist application has started successfully!"
+        )
+        print("📧 Test notification sent", flush=True)
+    except Exception as e:
+        print(f"⚠️  Could not send test notification: {e}", flush=True)
     
     print(f"🚀 Starting Baby Wishlist server on port {port}", flush=True)
     print(f"📱 Public view: http://localhost:{port}/", flush=True)

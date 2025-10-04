@@ -112,8 +112,8 @@
 
     <!-- Action Buttons (shown when we have items) -->
     <div class="flex justify-between items-center mb-8" id="action-buttons">
-        <h2 class="text-2xl font-bold text-gray-800">
-            <i class="fas fa-list mr-3"></i>
+        <h2 class="text-2xl font-bold text-white">
+            <i class="fas fa-list mr-3 text-white"></i>
             <span data-i18n="wishlistItems">Wishlist Items</span>
         </h2>
         <div class="flex items-center gap-4">
@@ -140,12 +140,6 @@
             <button onclick="showAddItemModal()" class="btn-modern">
                 <i class="fas fa-plus mr-2"></i>
                 <span data-i18n="addNewItem">Add New Item</span>
-            </button>
-            
-            <!-- Test Notification Button -->
-            <button onclick="testNotification()" class="btn-outline-modern" data-i18n-title="testNotifications" title="Test Notifications">
-                <i class="fas fa-bell mr-2"></i>
-                <span>Test</span>
             </button>
         </div>
     </div>
@@ -191,11 +185,7 @@
             <!-- Description -->
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2" data-i18n="description">Description</label>
-                <!-- WYSIWYG Editor Container -->
-                <div id="editor-container">
-                    <div id="item-description-editor" style="height: 200px;"></div>
-                </div>
-                <!-- Hidden textarea for form submission -->
+                <!-- Hidden textarea for form submission (Quill editor will be created here) -->
                 <textarea id="item-description" class="hidden" 
                           data-i18n="descriptionPlaceholder" placeholder="Add a detailed description..."></textarea>
             </div>

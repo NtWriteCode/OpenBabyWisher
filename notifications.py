@@ -95,13 +95,6 @@ class NotificationService:
             message += f"\n\nMessage: {buyer_message}"
         
         return self.send_notification(title, message)
-    
-    def send_test_notification(self) -> bool:
-        """Send a test notification"""
-        title = "🧪 Test Notification"
-        message = "This is a test notification from Baby Wishlist. If you see this, notifications are working correctly!"
-        
-        return self.send_notification(title, message)
 
 # Global notification service instance
 notification_service = NotificationService()
