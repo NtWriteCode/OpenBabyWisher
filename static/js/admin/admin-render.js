@@ -58,7 +58,10 @@ function renderAdminGridView() {
                 
                 <!-- Header -->
                 <div class="card-header">
-                    <h3 class="card-title">${escapeHtml(item.title)}</h3>
+                    <div class="flex items-start justify-between gap-2">
+                        <h3 class="card-title flex-1">${escapeHtml(item.title)}</h3>
+                        ${getPriorityIcon(item.priority)}
+                    </div>
                     <div class="flex items-center gap-2">
                         <div class="card-status ${item.disabled ? 'status-completed' : 'status-available'}">
                             ${item.disabled ? t('completed') : t('available')}
@@ -168,7 +171,10 @@ function renderAdminListView() {
                 <div class="list-item-content">
                     <!-- Header -->
                     <div class="list-item-header">
-                        <h3 class="list-item-title">${escapeHtml(item.title)}</h3>
+                        <div class="flex items-center gap-2">
+                            <h3 class="list-item-title">${escapeHtml(item.title)}</h3>
+                            ${getPriorityIcon(item.priority)}
+                        </div>
                         <div class="list-item-status">
                             <div class="card-status ${item.disabled ? 'status-completed' : 'status-available'}">
                                 ${item.disabled ? t('completed') : t('available')}

@@ -119,6 +119,9 @@ function showAddItemModal() {
         document.getElementById('item-description').value = '';
     }
     
+    // Reset priority to default (2) - update visual state
+    selectPriority(2);
+    
     // Clear tag input
     clearTagInput();
     

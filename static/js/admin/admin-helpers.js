@@ -17,6 +17,25 @@ function escapeHtml(unsafe) {
         .replace(/'/g, "&#039;");
 }
 
+function getPriorityIcon(priority) {
+    const priorityValue = priority || 2;
+    
+    switch(priorityValue) {
+        case 1:
+            return `<span class="priority-badge priority-1" title="${t('priority1Desc')}">!</span>`;
+        case 2:
+            return `<span class="priority-badge priority-2" title="${t('priority2Desc')}">!</span>`;
+        case 3:
+            return `<span class="priority-badge priority-3" title="${t('priority3Desc')}">!!</span>`;
+        case 4:
+            return `<span class="priority-badge priority-4" title="${t('priority4Desc')}">!</span>`;
+        case 5:
+            return `<span class="priority-badge priority-5" title="${t('priority5Desc')}">!!</span>`;
+        default:
+            return `<span class="priority-badge priority-2" title="${t('priority2Desc')}">!</span>`;
+    }
+}
+
 function initializeEditor() {
     const textarea = document.getElementById('item-description');
     if (textarea) {
