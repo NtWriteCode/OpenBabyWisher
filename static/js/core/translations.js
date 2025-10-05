@@ -253,7 +253,27 @@
             }
         };
 
-        let currentLang = localStorage.getItem('language') || 'en';
+        // Detect initial language: localStorage > browser language > default
+        function detectInitialLanguage() {
+            // First priority: user's saved preference
+            const savedLang = localStorage.getItem('language');
+            if (savedLang) {
+                return savedLang;
+            }
+            
+            // Second priority: browser language
+            const browserLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
+            
+            // If browser language contains 'en' (e.g., 'en', 'en-US', 'en-GB'), use English
+            if (browserLang.includes('en')) {
+                return 'en';
+            }
+            
+            // Otherwise, default to Hungarian
+            return 'hu';
+        }
+
+        let currentLang = detectInitialLanguage();
 
         function t(key) {
             const translation = translations[currentLang][key] || key;
