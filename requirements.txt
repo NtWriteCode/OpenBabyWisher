@@ -4,4 +4,4 @@ Flask-CORS==6.0.1
 Waitress==3.0.2
 Pillow==12.0.0
 python-dotenv==1.2.1
-requests==2.32.4
+requests==2.32.5
